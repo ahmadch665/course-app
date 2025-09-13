@@ -13,9 +13,8 @@ const page = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-wide text-center md:text-left">
               Welcome to Qutham Course App
             </h2>
-            <p className="text-white/90 text-center md:text-left leading-relaxed">
-              Manage your courses, track your progress, and excel in your
-              learning journey.
+            <p className="text-white/100 text-center md:text-left leading-relaxed">
+             Your Path to Career-Ready Skills.
             </p>
           </div>
         </div>

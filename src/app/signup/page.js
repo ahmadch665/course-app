@@ -20,7 +20,7 @@ const page = () => {
               Join Qutham Course App
             </h2>
             <p className="text-white/90 text-center md:text-left leading-relaxed">
-              Create your account to manage your courses, track progress, and excel in your learning journey.
+              Register today and take the first step towards becoming a skilled developer.
             </p>
           </div>
         </div>
@@ -37,7 +37,7 @@ const page = () => {
             />
             <h2 className="text-2xl font-bold">Sign Up to Course App</h2>
             <p className="text-white/90 leading-relaxed mt-2">
-              Create your account to manage your courses, track progress, and excel in your learning journey.
+             Register today and take the first step towards becoming a skilled developer.
             </p>
           </div>
 
