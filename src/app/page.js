@@ -1,8 +1,16 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 const page = () => {
+  const router = useRouter();
+
+  const handleLogin = (e) => {
+    e.preventDefault(); // prevent page reload
+    router.push("/dashboard"); // redirect to dashboard
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform transition duration-500 scale-95 animate-fadeIn">
@@ -14,7 +22,7 @@ const page = () => {
               Welcome to Qutham Course App
             </h2>
             <p className="text-white/100 text-center md:text-left leading-relaxed">
-             Your Path to Career-Ready Skills.
+              Your Path to Career-Ready Skills.
             </p>
           </div>
         </div>
@@ -33,7 +41,7 @@ const page = () => {
             </h2>
           </div>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"
