@@ -6,7 +6,7 @@ const page = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform transition duration-500 scale-95 animate-fadeIn">
-        {/* Left side: Branding */}
+   
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
             <img src="/l.webp" alt="Course App Logo" className="w-32 mb-6" />
@@ -19,9 +19,9 @@ const page = () => {
           </div>
         </div>
 
-        {/* Right side: Login Form */}
+       
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-          {/* Mobile Logo */}
+        
           <div className="mb-6 text-center md:hidden bg-gradient-to-tr from-blue-900 to-blue-700 p-6 rounded-xl">
             <img
               src="/l.webp"
@@ -85,7 +85,7 @@ const page = () => {
         </div>
       </div>
 
-      {/* Fade-in animation */}
+     
       <style jsx>{`
         @keyframes fadeIn {
           0% {

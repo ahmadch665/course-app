@@ -8,7 +8,7 @@ const page = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform transition duration-500 scale-95 animate-fadeIn">
 
-        {/* Left side: Branding (desktop only) */}
+       
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
             <img
@@ -25,10 +25,10 @@ const page = () => {
           </div>
         </div>
 
-        {/* Right side: Signup Form */}
+       
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
 
-          {/* Mobile Branding */}
+      
           <div className="flex md:hidden flex-col justify-center items-center bg-gradient-to-tr from-blue-900 to-blue-700 w-full rounded-t-xl p-6 mb-6 text-white text-center">
             <img
               src="/l.webp"
@@ -41,7 +41,7 @@ const page = () => {
             </p>
           </div>
 
-          {/* Signup Form */}
+       
           <form className="space-y-5">
             <div>
               <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
@@ -103,7 +103,6 @@ const page = () => {
 
       </div>
 
-      {/* Fade-in animation */}
       <style jsx>{`
         @keyframes fadeIn {
           0% { opacity: 0; transform: translateY(10px); }
