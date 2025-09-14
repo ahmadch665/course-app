@@ -1,27 +1,70 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import api from "../../utils/axios"; 
 
 const Page = () => {
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    router.push("/");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await api.post("/auth/login", {
+        userName: username,
+        password,
+      });
+
+      console.log("✅ Login Success:", res.data);
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
+      router.push("/");
+    } 
+  catch (err) {
+  if (err.response) {
+    console.error("❌ Login Error Data:", err.response.data || "No data");
+    console.error("❌ Login Error Status:", err.response.status);
+
+    const message = err.response.data?.message || "Invalid username or password";
+    setError(message);
+
+  } else if (err.request) {
+    console.error("❌ No response:", err.request);
+    setError("No response from server. Try again later.");
+  } else {
+    console.error("❌ Error Message:", err.message);
+    setError("Something went wrong. Try again.");
+  }
+} 
+finally {
+  setLoading(false);
+}
+
+
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform scale-95 animate-fadeIn">
-        {/* Left Side (Desktop Only) */}
+        
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
             <Image
               src="/l.webp"
               alt="Course App Logo"
-              width={128}   // ✅ matches w-32 (32 * 4 = 128px)
+              width={128}
               height={128}
               className="mb-6"
             />
@@ -34,14 +77,12 @@ const Page = () => {
           </div>
         </div>
 
-        {/* Right Side (Form Section) */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-          {/* Mobile Header */}
           <div className="mb-6 text-center md:hidden bg-gradient-to-tr from-blue-900 to-blue-700 p-6 rounded-xl">
             <Image
               src="/l.webp"
               alt="Course App Logo"
-              width={96}   // ✅ matches w-24 (24 * 4 = 96px)
+              width={96}
               height={96}
               className="mx-auto mb-4"
             />
@@ -50,19 +91,20 @@ const Page = () => {
             </h2>
           </div>
 
-          {/* Login Form */}
           <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Email
+                Username
               </label>
               <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
+                type="text"
+                id="username"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-sm"
                 required
               />
@@ -79,10 +121,12 @@ const Page = () => {
                 type="password"
                 id="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-sm"
                 required
               />
-              {/* Forgot Password Link */}
+              
               <div className="text-right mt-2">
                 <a
                   href="/forgot-password"
@@ -93,15 +137,19 @@ const Page = () => {
               </div>
             </div>
 
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 hover:scale-105 transform transition duration-300 shadow-md"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 hover:scale-105 transform transition duration-300 shadow-md disabled:opacity-50"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          {/* Signup Redirect */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don&apos;t have an account?{" "}
@@ -113,7 +161,6 @@ const Page = () => {
         </div>
       </div>
 
-      {/* Fade In Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           0% {
