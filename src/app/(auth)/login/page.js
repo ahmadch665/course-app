@@ -2,22 +2,29 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-const page = () => {
+const Page = () => {
   const router = useRouter();
 
   const handleLogin = (e) => {
-    e.preventDefault(); 
-    router.push("/dashboard"); 
+    e.preventDefault();
+    router.push("/");
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform scale-95 animate-fadeIn">
-   
+        {/* Left Side (Desktop Only) */}
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
-            <img src="/l.webp" alt="Course App Logo" className="w-32 mb-6" />
+            <Image
+              src="/l.webp"
+              alt="Course App Logo"
+              width={128}   // ✅ matches w-32 (32 * 4 = 128px)
+              height={128}
+              className="mb-6"
+            />
             <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-wide text-center md:text-left">
               Welcome to Qutham Course App
             </h2>
@@ -27,20 +34,23 @@ const page = () => {
           </div>
         </div>
 
-       
+        {/* Right Side (Form Section) */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-        
+          {/* Mobile Header */}
           <div className="mb-6 text-center md:hidden bg-gradient-to-tr from-blue-900 to-blue-700 p-6 rounded-xl">
-            <img
+            <Image
               src="/l.webp"
               alt="Course App Logo"
-              className="w-24 mx-auto mb-4"
+              width={96}   // ✅ matches w-24 (24 * 4 = 96px)
+              height={96}
+              className="mx-auto mb-4"
             />
             <h2 className="text-2xl font-bold text-white">
               Login to Course App
             </h2>
           </div>
 
+          {/* Login Form */}
           <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label
@@ -91,9 +101,10 @@ const page = () => {
             </button>
           </form>
 
+          {/* Signup Redirect */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <a href="/signup" className="text-blue-600 hover:underline">
                 Sign Up
               </a>
@@ -102,7 +113,7 @@ const page = () => {
         </div>
       </div>
 
-     
+      {/* Fade In Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           0% {
@@ -122,4 +133,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

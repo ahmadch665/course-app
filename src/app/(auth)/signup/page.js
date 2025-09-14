@@ -2,18 +2,21 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from "next/image";
 
-const page = () => {
+const Page = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform  scale-95 animate-fadeIn">
+      <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform scale-95 animate-fadeIn">
 
-       
+        {/* Left side with gradient */}
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
-            <img
+            <Image
               src="/l.webp"
               alt="Course App Logo"
+              width={128}   // ✅ added
+              height={128}  // ✅ added
               className="w-32 mb-6"
             />
             <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-wide text-center md:text-left">
@@ -25,23 +28,25 @@ const page = () => {
           </div>
         </div>
 
-       
+        {/* Right side with signup form */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
 
-      
+          {/* Mobile header */}
           <div className="flex md:hidden flex-col justify-center items-center bg-gradient-to-tr from-blue-900 to-blue-700 w-full rounded-t-xl p-6 mb-6 text-white text-center">
-            <img
+            <Image
               src="/l.webp"
               alt="Course App Logo"
+              width={96}    // ✅ added
+              height={96}   // ✅ added
               className="w-24 mb-4"
             />
             <h2 className="text-2xl font-bold">Sign Up to Course App</h2>
             <p className="text-white/90 leading-relaxed mt-2">
-             Register today and take the first step towards becoming a skilled developer.
+              Register today and take the first step towards becoming a skilled developer.
             </p>
           </div>
 
-       
+          {/* Form */}
           <form className="space-y-5">
             <div>
               <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
@@ -98,11 +103,10 @@ const page = () => {
               </Link>
             </p>
           </div>
-
         </div>
-
       </div>
 
+      {/* Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           0% { opacity: 0; transform: translateY(10px); }
@@ -116,4 +120,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

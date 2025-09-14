@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -17,7 +18,13 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl w-full max-w-md p-8 md:p-12 transform scale-95 animate-fadeIn">
         <div className="mb-6 text-center">
-          <img src="/l.webp" alt="Course App Logo" className="w-24 mx-auto mb-4" />
+          <Image
+            src="/l.webp"
+            alt="Course App Logo"
+            width={96}   // ✅ added
+            height={96}  // ✅ added
+            className="w-24 mx-auto mb-4"
+          />
           <h2 className="text-2xl font-bold text-gray-800">
             Forgot Password
           </h2>
