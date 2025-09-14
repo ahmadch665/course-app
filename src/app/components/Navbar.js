@@ -24,7 +24,7 @@ export default function Navbar() {
         scrolled ? "bg-white shadow-lg" : "bg-white shadow-md"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold text-blue-700">
           LearnHub
         </Link>
@@ -49,7 +49,7 @@ export default function Navbar() {
         <div className="hidden md:flex">
           <button
             onClick={handleSignUpClick}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-3 py-1 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
           >
             Login
           </button>
