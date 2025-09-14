@@ -7,13 +7,13 @@ const page = () => {
   const router = useRouter();
 
   const handleLogin = (e) => {
-    e.preventDefault(); // prevent page reload
-    router.push("/dashboard"); // redirect to dashboard
+    e.preventDefault(); 
+    router.push("/dashboard"); 
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform  scale-95 animate-fadeIn">
+      <div className="bg-white shadow-2xl hover:shadow-3xl transition-shadow duration-300 rounded-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden transform scale-95 animate-fadeIn">
    
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-900 to-blue-700 relative">
           <div className="h-full flex flex-col justify-center items-center p-10 text-white">
@@ -72,6 +72,15 @@ const page = () => {
                 className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-sm"
                 required
               />
+              {/* Forgot Password Link */}
+              <div className="text-right mt-2">
+                <a
+                  href="/forgot-password"
+                  className="text-blue-600 hover:underline text-sm font-medium"
+                >
+                  Forgot Password?
+                </a>
+              </div>
             </div>
 
             <button
@@ -114,6 +123,3 @@ const page = () => {
 };
 
 export default page;
-
-
-
