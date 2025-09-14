@@ -30,7 +30,7 @@ const Page = () => {
         localStorage.setItem("token", res.data.token);
       }
 
-      router.push("/");
+      router.push("/admin-dashboard");
     } 
   catch (err) {
   if (err.response) {
