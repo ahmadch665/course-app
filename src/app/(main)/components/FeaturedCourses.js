@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { PlayCircle } from "lucide-react";
 import axios from "axios";
+import Image from "next/image";
 
 export default function FeaturedCourses() {
   const controls = useAnimation();
@@ -68,8 +69,8 @@ export default function FeaturedCourses() {
               whileHover={{ scale: 1.05 }}
               className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
             >
-              <img
-                src={course.img || "/images/default-course.jpg"}
+              <Image
+                src={course.image || "/images/default-course.jpg"}
                 alt={course.title}
                 className="w-full h-48 object-cover"
               />
