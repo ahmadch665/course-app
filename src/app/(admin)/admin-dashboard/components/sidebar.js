@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiMenu, FiUser, FiUsers, FiBook, FiHome, FiChevronDown } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const router = useRouter();
-  const [courseOpen, setCourseOpen] = useState(false); // state for dropdown
+  const [courseOpen, setCourseOpen] = useState(false);
+
+  // ✅ Open sidebar by default on mobile
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setSidebarOpen(true);
+    }
+  }, [setSidebarOpen]);
 
   return (
     <aside
@@ -18,9 +25,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <h1 className={`${sidebarOpen ? "block" : "hidden"} font-bold text-lg`}>
           Admin
         </h1>
+        {/* ✅ Always show toggle button */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="hidden md:block"
+          className="block"
         >
           <FiMenu size={24} />
         </button>

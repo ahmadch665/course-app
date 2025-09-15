@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -61,9 +62,9 @@ const ForgotPassword = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             Remembered your password?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline">
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>
