@@ -6,6 +6,7 @@ import { PlayCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export default function LandingPage() {
           key={idx}
           className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
         >
-          <img
+          <Image
             src={course.image || "/l.webp"}
             alt={course.title}
             className="w-full h-48 object-cover"
@@ -181,7 +182,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl bg-gradient-to-br from-white to-gray-50"
             >
-              <img
+              <Image
                 src={blog.img}
                 alt={blog.title}
                 className="w-full h-56 object-cover"

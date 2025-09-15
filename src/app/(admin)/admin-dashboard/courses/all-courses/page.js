@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import api from "../../../../utils/axios";
+import Image from "next/image";
 
 export default function AllCoursesPage() {
   const [courses, setCourses] = useState([]);
@@ -94,7 +95,7 @@ export default function AllCoursesPage() {
                   className="cursor-pointer"
                 >
                   {course.image ? (
-                    <img
+                    <Image
                       src={course.image}
                       alt={course.title}
                       className="w-full h-40 object-cover"

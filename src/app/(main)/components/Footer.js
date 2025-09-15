@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="bg-blue-700 text-white py-8 ">
@@ -15,10 +17,10 @@ export default function Footer() {
         <div>
           <h3 className="font-bold text-lg mb-2">Quick Links</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:underline">Home</a></li>
-            <li><a href="/courses" className="hover:underline">Courses</a></li>
-            <li><a href="/about" className="hover:underline">About</a></li>
-            <li><a href="/contact" className="hover:underline">Contact</a></li>
+            <li><Link href="/" className="hover:underline">Home</Link></li>
+            <li><Link href="/courses" className="hover:underline">Courses</Link></li>
+            <li><Link href="/about" className="hover:underline">About</Link></li>
+            <li><Link href="/contact" className="hover:underline">Contact</Link></li>
           </ul>
         </div>
 
@@ -26,9 +28,9 @@ export default function Footer() {
         <div>
           <h3 className="font-bold text-lg mb-2">Follow Us</h3>
           <ul className="flex gap-4">
-            <li><a href="#" className="hover:underline">Facebook</a></li>
-            <li><a href="#" className="hover:underline">Twitter</a></li>
-            <li><a href="#" className="hover:underline">LinkedIn</a></li>
+            <li><Link href="#" className="hover:underline">Facebook</Link></li>
+            <li><Link href="#" className="hover:underline">Twitter</Link></li>
+            <li><Link href="#" className="hover:underline">LinkedIn</Link></li>
           </ul>
         </div>
       </div>
