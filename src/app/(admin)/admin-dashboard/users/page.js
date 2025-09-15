@@ -13,41 +13,37 @@ const UsersPage = () => {
     role: ''
   });
   const [loading, setLoading] = useState(false);
-  const [tableLoading, setTableLoading] = useState(true); // Loading state for users table
+  const [tableLoading, setTableLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState(""); // 🔍 search term
 
   // --- Fetch users from backend API ---
+  const fetchUsers = async () => {
+    setTableLoading(true);
+    try {
+      const payload = {
+        draw: 1,
+        start: 0,
+        length: -1,
+        columns: [],
+        order: [],
+        search: { value: "" } // 👈 always empty now
+      };
+
+      const res = await api.post('/users/userslist', payload);
+
+      const usersArray = res.data.data?.data || [];
+      setUsers(Array.isArray(usersArray) ? usersArray : []);
+    } catch (err) {
+      console.error("❌ Fetch users error:", err.response?.data || err.message);
+      setUsers([]);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  // initial load
   useEffect(() => {
-    const fetchUsers = async () => {
-      setTableLoading(true);
-      try {
-        const payload = {
-          draw: 1,
-          start: 0,
-          length: 10,
-          columns: [],
-          order: [],
-          search: { value: "" }
-        };
-
-        const res = await api.post('/users/userslist', payload);
-
-        console.log("✅ Full API Response Object:", res);
-        console.log("✅ res.data:", res.data);
-        console.log("🔹 res.data.data:", res.data.data); // <-- Check this
-
-        // Correctly set users from API response
-        const usersArray = res.data.data?.data || []; // ✅ Only this line changed
-        setUsers(Array.isArray(usersArray) ? usersArray : []);
-
-      } catch (err) {
-        console.error("❌ Fetch users error:", err.response?.data || err.message);
-        setUsers([]);
-      } finally {
-        setTableLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
 
@@ -63,12 +59,10 @@ const UsersPage = () => {
 
     try {
       const res = await api.post('/users/adduser', formData);
-      alert('User added successfully!');
+     alert('User added successfully!');
+await fetchUsers(); // 👈 refresh list from backend
+setFormData({ userName: '', email: '', password: '', phone: '', role: '' });
 
-      // Update users list safely
-      setUsers(prev => Array.isArray(prev) ? [...prev, res.data] : [res.data]);
-
-      setFormData({ userName: '', email: '', password: '', phone: '', role: '' });
     } catch (err) {
       const message = err.response?.data?.message || 'Adding user failed';
       setError(message);
@@ -77,6 +71,25 @@ const UsersPage = () => {
       setLoading(false);
     }
   };
+
+  // 🔍 Filter users on frontend only (startsWith first, then contains)
+const filteredUsers = (() => {
+  if (!search) return users;
+
+  const lowerSearch = search.toLowerCase();
+
+  const startsWith = users.filter((user) =>
+    user.userName?.toLowerCase().startsWith(lowerSearch)
+  );
+
+  const contains = users.filter((user) =>
+    user.userName?.toLowerCase().includes(lowerSearch) &&
+    !user.userName?.toLowerCase().startsWith(lowerSearch)
+  );
+
+  return [...startsWith, ...contains];
+})();
+
 
   return (
     <div className="p-6">
@@ -114,7 +127,8 @@ const UsersPage = () => {
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
               <option value="">Select Role</option>
               <option value="ADMIN">Admin</option>
-              <option value="USER">User</option>
+              <option value="INSTRUCTOR">Instructor</option>
+              <option value="STUDENT">Student</option>
             </select>
           </div>
 
@@ -132,12 +146,25 @@ const UsersPage = () => {
       {/* Users List */}
       <div className="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
         <h3 className="text-lg font-bold mb-4">Users List</h3>
-        <div className="overflow-x-auto">
+
+        {/* 🔍 Search Bar */}
+        <div className="mb-4 flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            placeholder="Search by username..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full sm:flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* ✅ Scrollable Table */}
+        <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-lg">
           {tableLoading ? (
             <p className="text-center py-4 text-gray-500">Loading users...</p>
           ) : (
             <table className="w-full text-left border-collapse">
-              <thead>
+              <thead className="sticky top-0 bg-white shadow">
                 <tr className="border-b border-gray-200">
                   <th className="p-3">Username</th>
                   <th className="p-3">Email</th>
@@ -146,14 +173,28 @@ const UsersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {Array.isArray(users) && users.map((user, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-3">{user.userName}</td>
-                    <td className="p-3">{user.email}</td>
-                    <td className="p-3">{user.phone}</td>
-                    <td className="p-3">{user.role}</td>
+                {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
+                  filteredUsers.map((user, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="p-3">{user.userName}</td>
+                      <td className="p-3">{user.email}</td>
+                      <td className="p-3">{user.phone}</td>
+                      <td className="p-3">{user.role}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="text-center py-4 text-gray-500"
+                    >
+                      No users found
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           )}
