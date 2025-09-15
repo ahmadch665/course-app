@@ -70,11 +70,7 @@ export default function FeaturedCourses() {
               className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
             >
               <Image
-<<<<<<< HEAD
-                src={course.img || "/images/default-course.jpg"}
-=======
-                src={course.image || "/images/default-course.jpg"}
->>>>>>> a81e64b159c1667504e33f03fee1e10c1c229c0d
+                src={course.Image || "/images/default-course.jpg"}
                 alt={course.title}
                 className="w-full h-48 object-cover"
               />
