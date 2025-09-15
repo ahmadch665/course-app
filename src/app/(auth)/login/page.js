@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import api from "../../utils/axios"; 
+import Link from "next/link";
 
 const Page = () => {
   const router = useRouter();
@@ -128,12 +129,12 @@ finally {
               />
               
               <div className="text-right mt-2">
-                <a
+                <Link
                   href="/forgot-password"
                   className="text-blue-600 hover:underline text-sm font-medium"
                 >
                   Forgot Password?
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -150,14 +151,7 @@ finally {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Don&apos;t have an account?{" "}
-              <a href="/signup" className="text-blue-600 hover:underline">
-                Sign Up
-              </a>
-            </p>
-          </div>
+         
         </div>
       </div>
 
