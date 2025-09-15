@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FiMenu, FiUser, FiUsers, FiBook } from "react-icons/fi";
+import { FiMenu, FiUser, FiUsers, FiBook, FiHome } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -17,7 +17,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <h1 className={`${sidebarOpen ? "block" : "hidden"} font-bold text-lg`}>
           Admin
         </h1>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+        {/* Toggle button -> hidden on mobile (smaller than md) */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="hidden md:block"
+        >
           <FiMenu size={24} />
         </button>
       </div>
@@ -26,11 +30,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <ul>
           <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
+            onClick={() => router.push("/admin-dashboard")}
+          >
+            <FiHome />
+            <span className={`${sidebarOpen ? "block" : "hidden"}`}>Home</span>
+          </li>
+
+          <li
+            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard/users")}
           >
             <FiUsers />
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Users</span>
           </li>
+
           <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin/courses")}

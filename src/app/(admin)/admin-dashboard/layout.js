@@ -1,14 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Sidebar from "./components/sidebar"; // relative import
-import Topbar from "./components/topbar";   // relative import
+import Sidebar from "./components/sidebar"; 
+import Topbar from "./components/topbar";   
 
 export default function AdminDashboardLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Default collapsed (safe for mobile SSR)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Admin Dashboard";
+
+    // ✅ Only expand on desktop
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      setSidebarOpen(true);
+    }
   }, []);
 
   return (
