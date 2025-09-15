@@ -15,9 +15,11 @@ export default function AddCoursePage() {
     endDate: "",
     status: "active",
     notes: "",
+    image: "", // added image field
   });
 
   const [editingCourse, setEditingCourse] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Handle form input
   const handleChange = (e) => {
@@ -28,6 +30,7 @@ export default function AddCoursePage() {
   // Add or update course
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       if (editingCourse) {
@@ -38,6 +41,7 @@ export default function AddCoursePage() {
         alert("✅ Course added successfully!");
       }
 
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -49,11 +53,14 @@ export default function AddCoursePage() {
         endDate: "",
         status: "active",
         notes: "",
+        image: "",
       });
       setEditingCourse(null);
     } catch (error) {
-      console.error("❌ Error saving course:", error);
+      console.error("❌ Error saving course:", error.response?.data || error);
       alert("Error saving course.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,7 +68,6 @@ export default function AddCoursePage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">➕ Add / Manage Course</h1>
 
-      {/* Add/Edit Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -150,12 +156,21 @@ export default function AddCoursePage() {
           onChange={handleChange}
           className="border p-2 rounded"
         />
+        <input
+          type="text"
+          name="image"
+          placeholder="Image URL"
+          value={formData.image}
+          onChange={handleChange}
+          className="border p-2 rounded"
+        />
 
         <button
           type="submit"
-          className="col-span-1 md:col-span-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          disabled={loading}
+          className="col-span-1 md:col-span-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all"
         >
-          {editingCourse ? "Update Course" : "Add Course"}
+          {loading ? "Saving..." : editingCourse ? "Update Course" : "Add Course"}
         </button>
       </form>
     </div>
