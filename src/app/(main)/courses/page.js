@@ -76,7 +76,7 @@ export default function CoursesPage() {
               className="cursor-pointer bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
             >
               <img
-                src={course.img || "/k.png"}
+                src={course.image || "/k.png"}
                 alt={course.title}
                 className="w-full h-40 object-cover"
               />
@@ -96,4 +96,3 @@ export default function CoursesPage() {
     </div>
   );
 }
-  
