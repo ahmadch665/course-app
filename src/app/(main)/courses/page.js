@@ -1,34 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, PlayCircle } from "lucide-react";
-
-const courses = [
-  {
-    id: 1,
-    title: "React for Beginners",
-    category: "Web Development",
-    desc: "Build dynamic React apps.",
-    img: "/images/react-course.jpg",
-  },
-  {
-    id: 2,
-    title: "Next.js Mastery",
-    category: "Web Development",
-    desc: "SSR, API routes, and more.",
-    img: "/images/next-course.jpg",
-  },
-  {
-    id: 3,
-    title: "UI/UX Design",
-    category: "Design",
-    desc: "Design engaging user interfaces.",
-    img: "/images/design-course.jpg",
-  },
-];
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { PlayCircle, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function CoursesPage() {
+  const router = useRouter();
+  const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("https://course-app-tvgx.onrender.com/api/course/allcourses");
+        console.log(res.data);
+        const coursesArray = res.data.courses || res.data.data || [];
+        setCourses(coursesArray);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load courses.");
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const filtered = courses.filter((c) =>
     c.title.toLowerCase().includes(search.toLowerCase())
@@ -43,26 +44,31 @@ export default function CoursesPage() {
       {/* Search Bar */}
       <div className="flex justify-center mb-10">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-2.5 text-gray-400" />
           <input
             type="text"
             placeholder="Search courses..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <Search className="absolute left-3 top-2.5 text-gray-400" />
         </div>
       </div>
 
+      {/* Loading / Error */}
+      {loading && <p className="text-center text-gray-500">Loading courses...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
+
       {/* Courses Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filtered.map((course) => (
+        {!loading && !error && filtered.map((course) => (
           <div
-            key={course.id}
-            className="bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
+            key={course._id || course.id}
+            onClick={() => router.push(`/courses/${course._id || course.id}`)}
+            className="cursor-pointer bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
           >
             <img
-              src={course.img}
+              src={course.img || "/k.png"}
               alt={course.title}
               className="w-full h-40 object-cover"
             />
@@ -70,7 +76,7 @@ export default function CoursesPage() {
               <h3 className="text-xl font-semibold text-blue-700">
                 {course.title}
               </h3>
-              <p className="text-gray-500 text-sm">{course.desc}</p>
+              <p className="text-gray-500 text-sm">{course.description}</p>
               <button className="mt-4 flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
                 <PlayCircle size={18} /> Start Course
               </button>
