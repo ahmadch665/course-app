@@ -132,7 +132,7 @@ export default function LandingPage() {
           className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
         >
           <img
-            src={course.img || "/l.webp"}
+            src={course.image || "/l.webp"}
             alt={course.title}
             className="w-full h-48 object-cover"
           />
