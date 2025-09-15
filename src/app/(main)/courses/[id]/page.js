@@ -132,8 +132,8 @@ export default function CourseDetailPage() {
 
         {/* Right Image */}
         <div className="flex-1 relative bg-gradient-to-tr from-orange-200 to-orange-300 flex items-center justify-center">
-          <img
-            src={course.img || "/l.webp"}
+          <Image
+            src={course.image || "/l.webp"}
             alt={course.title}
             className="w-full h-full object-cover rounded-l-none md:rounded-l-3xl md:rounded-r-3xl"
           />
