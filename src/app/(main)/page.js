@@ -100,69 +100,71 @@ export default function LandingPage() {
       </section>
 
       {/* 📚 Featured Courses Carousel */}
-      <motion.section className="py-20 px-6 md:px-12 overflow-hidden bg-gray-50">
+     <motion.section className="py-20 bg-gray-50">
   <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
     Featured Courses
   </h2>
 
   {loadingCourses ? (
-    // Loader while fetching courses
     <div className="flex items-center justify-center py-20">
       <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : featuredCourses.length > 0 ? (
-    <div className="relative overflow-hidden">
-      <motion.div
-        ref={carouselRef}
-        className="flex gap-8 cursor-grab"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.05}
-        onMouseEnter={() => controls.stop()}
-        onMouseLeave={() => {
-          if (window.innerWidth >= 768) {
-            controls.start({
-              x: ["0%", "-100%"],
-              transition: { repeat: Infinity, duration: 20, ease: "linear" },
-            });
-          }
-        }}
-        animate={controls}
-      >
-        {/* Duplicate courses for infinite loop effect */}
-        {[...featuredCourses, ...featuredCourses].map((course, idx) => (
-          <Link
-            href={`/courses/${course._id}`}
-            key={idx}
-            className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
-          >
-            <Image
-              src={course.img || "/pyhton.jpg"}
-              alt={course.title || "Course Image"}
-              width={400} // exact width
-              height={192} // exact height
-              className="object-cover"
-            />
-            <div className="p-6 flex flex-col flex-1">
-              <h3 className="text-xl font-semibold text-blue-700">{course.title}</h3>
-              <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
-                {course.desc || course.description || "No description available."}
-              </p>
-              {course.duration && (
-                <p className="text-gray-500 mt-2 text-sm">Duration: {course.duration}</p>
-              )}
-              <button className="mt-5 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
-                <PlayCircle size={18} /> Start Learning
-              </button>
-            </div>
-          </Link>
-        ))}
-      </motion.div>
+    <div className="relative max-w-7xl mx-auto overflow-hidden">
+<motion.div
+  ref={carouselRef}
+  className="flex gap-8 cursor-grab"
+  drag="x"
+  dragConstraints={{
+    left: -carouselRef.current?.scrollWidth + carouselRef.current?.offsetWidth || 0,
+    right: 0,
+  }}
+  dragElastic={0.05}
+  onMouseEnter={() => controls.stop()}
+  onMouseLeave={() => {
+    if (window.innerWidth >= 768) {
+      controls.start({
+        x: ["0%", "-100%"],
+        transition: { repeat: Infinity, duration: 20, ease: "linear" },
+      });
+    }
+  }}
+  animate={controls}
+>
+  {[...featuredCourses, ...featuredCourses].map((course, idx) => (
+    <Link
+      href={`/courses/${course._id}`}
+      key={idx}
+      className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
+    >
+      <Image
+        src={course.img || "/pyhton.jpg"}
+        alt={course.title || "Course Image"}
+        width={400}
+        height={192}
+        className="object-cover"
+      />
+      <div className="flex flex-col flex-1 p-4">
+        <h3 className="text-xl font-semibold text-blue-700">{course.title}</h3>
+        <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
+          {course.desc || course.description || "No description available."}
+        </p>
+        {course.duration && (
+          <p className="text-gray-500 mt-2 text-sm">Duration: {course.duration}</p>
+        )}
+        <button className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
+          <PlayCircle size={18} /> Start Learning
+        </button>
+      </div>
+    </Link>
+  ))}
+</motion.div>
     </div>
   ) : (
     <p className="text-gray-500 text-center w-full">No courses found.</p>
   )}
 </motion.section>
+
 
 
       {/* 📰 Blogs Section */}
