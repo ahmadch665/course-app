@@ -1,23 +1,23 @@
 "use client";
 
-import React from "react";
-import { FiMenu, FiUser, FiUsers, FiBook, FiHome } from "react-icons/fi";
+import React, { useState } from "react";
+import { FiMenu, FiUser, FiUsers, FiBook, FiHome, FiChevronDown } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const router = useRouter();
+  const [courseOpen, setCourseOpen] = useState(false); // state for dropdown
 
   return (
     <aside
       className={`${
         sidebarOpen ? "w-64" : "w-20"
-      } bg-gradient-to-tr from-blue-900 to-blue-700 text-white transition-width duration-300 flex flex-col`}
+      } bg-gradient-to-tr from-blue-900 to-blue-700 text-white transition-all duration-300 flex flex-col`}
     >
       <div className="flex items-center justify-between p-4">
         <h1 className={`${sidebarOpen ? "block" : "hidden"} font-bold text-lg`}>
           Admin
         </h1>
-        {/* Toggle button -> hidden on mobile (smaller than md) */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="hidden md:block"
@@ -28,6 +28,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       <nav className="flex-1 mt-4">
         <ul>
+          {/* Home */}
           <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard")}
@@ -36,6 +37,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Home</span>
           </li>
 
+          {/* Users */}
           <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard/users")}
@@ -44,16 +46,45 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Users</span>
           </li>
 
+          {/* Courses Dropdown */}
           <li
-            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
-            onClick={() => router.push("/admin/courses")}
+            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center justify-between"
+            onClick={() => setCourseOpen(!courseOpen)}
           >
-            <FiBook />
-            <span className={`${sidebarOpen ? "block" : "hidden"}`}>Courses</span>
+            <div className="flex items-center gap-3">
+              <FiBook />
+              <span className={`${sidebarOpen ? "block" : "hidden"}`}>Courses</span>
+            </div>
+            {sidebarOpen && (
+              <FiChevronDown
+                className={`transition-transform duration-300 ${
+                  courseOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </li>
+
+          {/* Dropdown items */}
+          {courseOpen && sidebarOpen && (
+            <ul className="ml-10">
+              <li
+                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
+                onClick={() => router.push("/admin-dashboard/courses/all-courses")}
+              >
+                All Courses
+              </li>
+              <li
+                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
+                onClick={() => router.push("/admin-dashboard/courses/add-courses")}
+              >
+                Add Course
+              </li>
+            </ul>
+          )}
         </ul>
       </nav>
 
+      {/* Footer */}
       <div className="p-4 border-t border-blue-800 flex items-center gap-3">
         <FiUser />
         <span className={`${sidebarOpen ? "block" : "hidden"}`}>Admin Name</span>
