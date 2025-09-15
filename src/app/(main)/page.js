@@ -135,7 +135,9 @@ export default function LandingPage() {
           <Image
             src={course.image || "/l.webp"}
             alt={course.title}
-            className="w-full h-48 object-cover"
+            width={400}
+            height={224}
+            className=" object-cover"
           />
           <div className="p-6 flex flex-col flex-1">
             <h3 className="text-xl font-semibold text-blue-700">
@@ -183,9 +185,11 @@ export default function LandingPage() {
               className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl bg-gradient-to-br from-white to-gray-50"
             >
               <Image
-                src={blog.img}
-                alt={blog.title}
-                className="w-full h-56 object-cover"
+  src={blog.Image || "/images/default.jpg"} // fallback if blog.Image is undefined
+  alt={blog.title || "Blog Image"}
+  width={400}
+  height={224}
+                className=" object-cover"
               />
               <div className="p-6">
                 <h3 className="text-xl font-bold text-blue-700">{blog.title}</h3>
