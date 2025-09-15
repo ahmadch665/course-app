@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion,useAnimation } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { PlayCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -12,7 +12,6 @@ export default function LandingPage() {
   const controls = useAnimation();
   const carouselRef = useRef(null);
 
-  // Blogs (static)
   const blogs = [
     {
       title: "Top 10 React Tips",
@@ -31,7 +30,6 @@ export default function LandingPage() {
     },
   ];
 
-  // Featured courses state (API)
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
 
@@ -60,7 +58,6 @@ export default function LandingPage() {
 
     fetchCourses();
 
-    // Start carousel animation
     controls.start({
       x: ["0%", "-100%"],
       transition: { repeat: Infinity, duration: 20, ease: "linear" },
@@ -68,7 +65,14 @@ export default function LandingPage() {
   }, [controls]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className="min-h-screen bg-white text-gray-800 relative">
+      {/* 🔄 Loader Overlay */}
+        {/* {loadingCourses && (
+          <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )} */}
+
       {/* 🌟 Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-24 px-6 md:px-12 text-center overflow-visible">
         <div className="absolute inset-0 opacity-20 bg-[url('/images/pattern.svg')] bg-cover"></div>
@@ -95,60 +99,66 @@ export default function LandingPage() {
       </section>
 
       {/* 📚 Featured Courses Carousel */}
-      <motion.section className="py-20 px-6 md:px-12 overflow-hidden bg-gray-50">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
-          Featured Courses
-        </h2>
+<motion.section className="py-20 px-6 md:px-12 overflow-hidden bg-gray-50">
+  <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
+    Featured Courses
+  </h2>
 
-        <motion.div
-          ref={carouselRef}
-          className="flex gap-8 cursor-grab"
-          animate={controls}
-          onMouseEnter={() => controls.stop()}
-          onMouseLeave={() =>
-            controls.start({
-              x: ["0%", "-100%"],
-              transition: { repeat: Infinity, duration: 20, ease: "linear" },
-            })
-          }
-          drag="x"
-          dragConstraints={carouselRef}
-          dragElastic={0.05}
+  {loadingCourses ? (
+    // 🎡 Loader only inside Featured Courses
+    <div className="flex items-center justify-center py-20">
+      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  ) : featuredCourses.length > 0 ? (
+    <motion.div
+      ref={carouselRef}
+      className="flex gap-8 cursor-grab"
+      animate={controls}
+      onMouseEnter={() => controls.stop()}
+      onMouseLeave={() =>
+        controls.start({
+          x: ["0%", "-100%"],
+          transition: { repeat: Infinity, duration: 20, ease: "linear" },
+        })
+      }
+      drag="x"
+      dragConstraints={carouselRef}
+      dragElastic={0.05}
+    >
+      {[...featuredCourses, ...featuredCourses].map((course, idx) => (
+        <Link
+          href={`/courses/${course._id}`}
+          key={idx}
+          className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
         >
-          {loadingCourses ? (
-            <p className="text-gray-500 text-center w-full">Loading courses...</p>
-          ) : featuredCourses.length > 0 ? (
-            [...featuredCourses, ...featuredCourses].map((course, idx) => (
-              <Link
-                href={`/courses/${course._id}`}
-                key={idx}
-                className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
-              >
-                <img
-                  src={course.img || "/l.webp"}
-                  alt={course.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-xl font-semibold text-blue-700">{course.title}</h3>
-                  <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
-                    {course.desc || course.description || "No description available."}
-                  </p>
-                  {course.duration && (
-                    <p className="text-gray-500 mt-2 text-sm">Duration: {course.duration}</p>
-                  )}
-                  <button className="mt-5 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-                    <PlayCircle size={18} /> Start Learning
-                  </button>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <p className="text-gray-500 text-center w-full">No courses found.</p>
-          )}
-        </motion.div>
-      </motion.section>
-
+          <img
+            src={course.img || "/l.webp"}
+            alt={course.title}
+            className="w-full h-48 object-cover"
+          />
+          <div className="p-6 flex flex-col flex-1">
+            <h3 className="text-xl font-semibold text-blue-700">
+              {course.title}
+            </h3>
+            <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
+              {course.desc || course.description || "No description available."}
+            </p>
+            {course.duration && (
+              <p className="text-gray-500 mt-2 text-sm">
+                Duration: {course.duration}
+              </p>
+            )}
+            <button className="mt-5 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
+              <PlayCircle size={18} /> Start Learning
+            </button>
+          </div>
+        </Link>
+      ))}
+    </motion.div>
+  ) : (
+    <p className="text-gray-500 text-center w-full">No courses found.</p>
+  )}
+</motion.section> 
       {/* 📰 Blogs Section */}
       <motion.section
         className="py-20 px-6 md:px-12 bg-white"
