@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PlayCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -73,21 +74,38 @@ export default function CoursesPage() {
             <div
               key={course._id || course.id}
               onClick={() => router.push(`/courses/${course._id || course.id}`)}
-              className=" bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
+              className="bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition flex flex-col h-[350px]" // ✅ fixed equal height
             >
+              {/* Image */}
               <Image
                 src={course.image || "/k.png"}
                 alt={course.title}
                 width={400}
-                height={200}
-                className=" object-cover"
+                height={100}
+                className="object-cover h-40 w-full"
               />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-blue-700">
+
+              {/* Content */}
+              <div className="p-6 flex flex-col flex-1">
+                {/* Title */}
+                <h3 className="text-xl font-semibold text-blue-700 line-clamp-1">
                   {course.title}
                 </h3>
-                <p className="text-gray-500 text-sm">{course.description}</p>
-                <button className="cursor-pointer mt-4 flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+
+                {/* Description & Duration */}
+                <div className="mt-2 flex-1">
+                  <p className="text-gray-500 text-sm line-clamp-3">
+                    {course.description || "No description available."}
+                  </p>
+                  {course.duration && (
+                    <p className="text-gray-600 text-sm mt-2">
+                     Duration: {course.duration}
+                    </p>
+                  )}
+                </div>
+
+                {/* Button fixed at bottom */}
+                <button className="mt-auto flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
                   <PlayCircle size={18} /> Start Course
                 </button>
               </div>
