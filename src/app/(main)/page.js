@@ -44,16 +44,7 @@ export default function LandingPage() {
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  // ✅ Recalculate drag constraints on mobile
-  useEffect(() => {
-    if (carouselRef.current && isMobile) {
-      const maxDrag =
-        carouselRef.current.scrollWidth - carouselRef.current.offsetWidth;
-      setDragConstraints({ left: -maxDrag, right: 0 });
-    }
-  }, [isMobile, featuredCourses]);
-
-  // ✅ Fetch courses from API
+  // ✅ Fetch courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -80,6 +71,15 @@ export default function LandingPage() {
     fetchCourses();
   }, []);
 
+  // ✅ Recalculate drag constraints for mobile
+  useEffect(() => {
+    if (carouselRef.current && isMobile) {
+      const maxDrag =
+        carouselRef.current.scrollWidth - carouselRef.current.offsetWidth;
+      setDragConstraints({ left: -maxDrag, right: 0 });
+    }
+  }, [isMobile, featuredCourses]);
+
   // ✅ Auto scroll only on desktop
   useEffect(() => {
     if (!isMobile) {
@@ -90,7 +90,9 @@ export default function LandingPage() {
     } else {
       controls.stop();
     }
-  }, [isMobile, controls]);
+    // ✅ only depend on isMobile (fixes console error)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 relative">
@@ -134,7 +136,7 @@ export default function LandingPage() {
             <motion.div
               ref={carouselRef}
               className="flex gap-8 cursor-grab"
-              drag={isMobile ? "x" : false} // ✅ drag only on mobile
+              drag={isMobile ? "x" : false}
               dragConstraints={isMobile ? dragConstraints : {}}
               dragElastic={0.05}
               onMouseEnter={() => !isMobile && controls.stop()}
@@ -150,7 +152,7 @@ export default function LandingPage() {
                   });
                 }
               }}
-              animate={!isMobile ? controls : undefined} // ✅ auto scroll only desktop
+              animate={!isMobile ? controls : undefined}
             >
               {[...featuredCourses, ...featuredCourses].map((course, idx) => (
                 <Link
