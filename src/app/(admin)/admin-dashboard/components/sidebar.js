@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const router = useRouter();
   const [courseOpen, setCourseOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false); // ✅ added for Users dropdown
 
   // ✅ Open sidebar by default on mobile
   useEffect(() => {
@@ -19,7 +20,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     <aside
       className={`${
         sidebarOpen ? "w-64" : "w-20"
-      } bg-gradient-to-tr from-blue-900 to-blue-700 text-white transition-all duration-300 flex flex-col`}
+      } fixed top-0 left-0 h-screen bg-gradient-to-tr from-blue-900 to-blue-700 text-white transition-all duration-300 flex flex-col z-50`}
     >
       <div className="flex items-center justify-between p-4">
         <h1 className={`${sidebarOpen ? "block" : "hidden"} font-bold text-lg`}>
@@ -45,14 +46,41 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Home</span>
           </li>
 
-          {/* Users */}
+          {/* ✅ Users Dropdown */}
           <li
-            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
-            onClick={() => router.push("/admin-dashboard/users")}
+            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center justify-between"
+            onClick={() => setUserOpen(!userOpen)}
           >
-            <FiUsers />
-            <span className={`${sidebarOpen ? "block" : "hidden"}`}>Users</span>
+            <div className="flex items-center gap-3">
+              <FiUsers />
+              <span className={`${sidebarOpen ? "block" : "hidden"}`}>Users</span>
+            </div>
+            {sidebarOpen && (
+              <FiChevronDown
+                className={`transition-transform duration-300 ${
+                  userOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </li>
+
+          {/* Dropdown items for Users */}
+          {userOpen && sidebarOpen && (
+            <ul className="ml-10">
+              <li
+                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
+                onClick={() => router.push("/admin-dashboard/users/total-users")}
+              >
+                All Users
+              </li>
+              <li
+                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
+                onClick={() => router.push("/admin-dashboard/users/instructors-students")}
+              >
+                Instructors & Students
+              </li>
+            </ul>
+          )}
 
           {/* Courses Dropdown */}
           <li
@@ -72,7 +100,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             )}
           </li>
 
-          {/* Dropdown items */}
+          {/* Dropdown items for Courses */}
           {courseOpen && sidebarOpen && (
             <ul className="ml-10">
               <li

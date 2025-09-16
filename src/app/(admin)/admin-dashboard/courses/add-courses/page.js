@@ -16,6 +16,8 @@ export default function AddCoursePage() {
     status: "active", // ✅ default lowercase
     notes: "",
     image: null, // file object
+    videoUrls: "",
+    videoDescription: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,8 @@ export default function AddCoursePage() {
       payload.append("status", formData.status.toLowerCase()); // ✅ always lowercase
       if (formData.notes) payload.append("notes", formData.notes.trim());
       if (formData.image) payload.append("image", formData.image);
+      if (formData.videoUrls) payload.append("videoUrls", formData.videoUrls.trim());
+      if (formData.videoDescription) payload.append("videoDescription", formData.videoDescription.trim());
 
       console.log("📤 Sending FormData...");
 
@@ -77,6 +81,8 @@ export default function AddCoursePage() {
         status: "active",
         notes: "",
         image: null,
+        videoUrls: "",
+        videoDescription: "",
       });
     } catch (error) {
       console.error("❌ Error saving course:", error.response?.data || error);
@@ -194,6 +200,24 @@ export default function AddCoursePage() {
           name="notes"
           placeholder="Notes"
           value={formData.notes}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+
+        {/* ✅ New Fields */}
+        <input
+          type="text"
+          name="videoUrls"
+          placeholder="Video URLs (comma-separated)"
+          value={formData.videoUrls}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+
+        <textarea
+          name="videoDescription"
+          placeholder="Video Description"
+          value={formData.videoDescription}
           onChange={handleChange}
           className="w-full border p-2 rounded"
         />

@@ -41,17 +41,49 @@ export default function AllCoursesPage() {
     }
   };
 
-  // Update course
-  const handleUpdate = async (id) => {
-    try {
-      await api.put(`/course/update/${id}`, editData[id]);
-      alert("✅ Course updated successfully!");
-      fetchCourses();
-    } catch (error) {
-      console.error("❌ Error updating course:", error.response?.data || error);
-      alert("Error updating course.");
-    }
-  };
+  // Update course (with image support)
+  // Update course (with image support)
+const handleUpdate = async (id) => {
+  try {
+    const data = editData[id];
+    const formData = new FormData();
+
+    // Append all fields dynamically
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== undefined && data[key] !== null && key !== "preview") {
+        // Convert objects/arrays to JSON strings
+        if (typeof data[key] === "object") {
+          formData.append(key, JSON.stringify(data[key]));
+        } else {
+          formData.append(key, data[key]);
+        }
+      }
+    });
+
+    const res = await api.put(`/course/update/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    alert("✅ Course updated successfully!");
+
+    // 🔹 Replace updated course in state so new image shows immediately
+    setCourses((prev) =>
+      prev.map((course) =>
+        course._id === id ? { ...course, ...res.data.data || res.data } : course
+      )
+    );
+
+    // collapse after save
+    setExpanded(null);
+    setEditData((prev) => ({ ...prev, [id]: {} }));
+  } catch (error) {
+    console.error("❌ Error updating course:", error.response?.data || error);
+    alert("Error updating course.");
+  }
+};
+
 
   return (
     <div className="p-6">
@@ -79,6 +111,10 @@ export default function AllCoursesPage() {
                   startDate: course.startDate?.split("T")[0] || "",
                   endDate: course.endDate?.split("T")[0] || "",
                   notes: course.notes || "",
+                  videoUrls: course.videoUrls || "",          // ✅ added
+      videoDescription: course.videoDescription || "", // ✅ added
+                  image: null, // add image field
+                  preview: null, // preview for instant replacement
                 },
               }));
             }
@@ -90,19 +126,25 @@ export default function AllCoursesPage() {
               >
                 {/* Card header (clickable only for expand/collapse) */}
                 <div
-                 onClick={() => setExpanded(isExpanded ? null : course._id)}
-
+                  onClick={() => setExpanded(isExpanded ? null : course._id)}
                   className="cursor-pointer"
                 >
-                  {course.image ? (
+                  {editData[course._id]?.preview ? (
                     <Image
-  src={course.image}
-  alt={course.title}
-  width={600}   // big enough, scales down with w-full
-  height={160}  // matches h-40 (10rem = 160px)
-  className="w-full h-40 object-cover"
-/>
-
+                      src={editData[course._id].preview}
+                      alt={course.title}
+                      width={600}
+                      height={160}
+                      className="w-full h-40 object-cover"
+                    />
+                  ) : course.image ? (
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      width={600}
+                      height={160}
+                      className="w-full h-40 object-cover"
+                    />
                   ) : (
                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500">
                       No Image
@@ -112,17 +154,21 @@ export default function AllCoursesPage() {
                   {!isExpanded && (
                     <div className="p-4">
                       <h2 className="text-lg font-bold">{course.title}</h2>
-                      <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {course.description}
+                      </p>
                       <div className="mt-2 text-sm">
                         <p>
                           <span className="font-semibold">Instructor:</span>{" "}
                           {course.instructor || "-"}
                         </p>
                         <p>
-                          <span className="font-semibold">Level:</span> {course.level || "-"}
+                          <span className="font-semibold">Level:</span>{" "}
+                          {course.level || "-"}
                         </p>
                         <p>
-                          <span className="font-semibold">Price:</span> ${course.price}
+                          <span className="font-semibold">Price:</span> $
+                          {course.price}
                         </p>
                         <p>
                           <span className="font-semibold">Status:</span>{" "}
@@ -145,7 +191,10 @@ export default function AllCoursesPage() {
 
                 {/* Editable Fields */}
                 {isExpanded && (
-                  <div className="p-4 space-y-2" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="p-4 space-y-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="text"
                       className="w-full border px-2 py-1 rounded"
@@ -153,7 +202,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], title: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            title: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Title"
@@ -164,7 +216,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], description: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            description: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Description"
@@ -176,7 +231,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], price: Number(e.target.value) },
+                          [course._id]: {
+                            ...prev[course._id],
+                            price: Number(e.target.value),
+                          },
                         }))
                       }
                       placeholder="Price"
@@ -188,7 +246,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], level: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            level: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Level"
@@ -200,7 +261,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], instructor: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            instructor: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Instructor"
@@ -212,7 +276,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], status: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            status: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Status"
@@ -224,7 +291,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], duration: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            duration: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Duration"
@@ -236,7 +306,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], startDate: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            startDate: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Start Date"
@@ -248,7 +321,10 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], endDate: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            endDate: e.target.value,
+                          },
                         }))
                       }
                       placeholder="End Date"
@@ -259,11 +335,84 @@ export default function AllCoursesPage() {
                       onChange={(e) =>
                         setEditData((prev) => ({
                           ...prev,
-                          [course._id]: { ...prev[course._id], notes: e.target.value },
+                          [course._id]: {
+                            ...prev[course._id],
+                            notes: e.target.value,
+                          },
                         }))
                       }
                       placeholder="Notes"
                     />
+                    {/* Video URLs */}
+<input
+  type="text"
+  className="w-full border px-2 py-1 rounded"
+  value={editData[course._id]?.videoUrls || ""}
+  onChange={(e) =>
+    setEditData((prev) => ({
+      ...prev,
+      [course._id]: {
+        ...prev[course._id],
+        videoUrls: e.target.value,
+      },
+    }))
+  }
+  placeholder="Video URLs (comma separated)"
+/>
+
+{/* Video Description */}
+<textarea
+  className="w-full border px-2 py-1 rounded"
+  value={editData[course._id]?.videoDescription || ""}
+  onChange={(e) =>
+    setEditData((prev) => ({
+      ...prev,
+      [course._id]: {
+        ...prev[course._id],
+        videoDescription: e.target.value,
+      },
+    }))
+  }
+  placeholder="Video Description"
+/>
+
+
+                    {/* 🔹 Image Upload */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="w-full border px-2 py-1 rounded"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const previewUrl = URL.createObjectURL(file);
+                          setEditData((prev) => ({
+                            ...prev,
+                            [course._id]: {
+                              ...prev[course._id],
+                              image: file,
+                              preview: previewUrl,
+                            },
+                          }));
+                        }
+                      }}
+                    />
+
+                    {/* Preview selected image */}
+                    {editData[course._id]?.preview && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">
+                          Selected image (not saved yet):
+                        </p>
+                        <Image
+                          src={editData[course._id].preview}
+                          alt="Preview"
+                          width={150}
+                          height={80}
+                          className="rounded border"
+                        />
+                      </div>
+                    )}
 
                     {/* Actions */}
                     <div className="mt-4 flex gap-2">

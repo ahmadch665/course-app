@@ -20,7 +20,12 @@ export default function AdminDashboardLayout({ children }) {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <main className="flex-1 overflow-auto">
+      {/* ✅ Added margin so content doesn't hide behind sidebar */}
+      <main
+        className={`flex-1 overflow-auto transition-all duration-300 ${
+          sidebarOpen ? "ml-64" : "ml-20"
+        }`}
+      >
         <Topbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <div className="p-6">{children}</div>
       </main>
