@@ -96,10 +96,13 @@ export default function AllCoursesPage() {
                 >
                   {course.image ? (
                     <Image
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-40 object-cover"
-                    />
+  src={course.image}
+  alt={course.title}
+  width={600}   // big enough, scales down with w-full
+  height={160}  // matches h-40 (10rem = 160px)
+  className="w-full h-40 object-cover"
+/>
+
                   ) : (
                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500">
                       No Image
