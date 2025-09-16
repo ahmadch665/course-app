@@ -32,7 +32,6 @@ export default function CourseDetailPage() {
     fetchCourse();
   }, [id]);
 
-  // 🔄 Loader overlay
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -54,21 +53,6 @@ export default function CourseDetailPage() {
       </div>
     );
   }
-
-  const learnCards = [
-    {
-      title: "JavaScript, React, & Node.js",
-      description: "Build fully-fledged websites and web apps.",
-    },
-    {
-      title: "JavaScript Interviews",
-      description: "Prepare for JavaScript Interviews.",
-    },
-    {
-      title: "Data Structures & Algorithms",
-      description: "Prepare for the data structures and algorithm interviews.",
-    },
-  ];
 
   const skills = [
     { title: "Web Development", learners: "14M learners" },
@@ -122,78 +106,82 @@ export default function CourseDetailPage() {
 
           {/* Action Button */}
           <div className="flex items-center gap-6 mb-4">
-  <button
-    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
-    onClick={() => router.push(`/courses/${id}/content`)} // <-- navigation added
-  >
-    <PlayCircle size={20} /> Get started
-  </button>
-</div>
+            <button
+              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
+              onClick={() => router.push(`/courses/${id}/content`)}
+            >
+              <PlayCircle size={20} /> Get started
+            </button>
+          </div>
         </div>
 
         {/* Right Image */}
         <div className="flex-1 relative bg-gradient-to-tr from-orange-200 to-orange-300 flex items-center justify-center">
           <Image
             src={course.image || "/l.webp"}
-            alt={course.title}
-            width={500}
-            height={500}
-            className="w-full h-full object-cover rounded-l-none md:rounded-l-3xl md:rounded-r-3xl"
+            alt={course.title || "Course image"}
+            width={520}
+            height={200}
+            className="object-cover rounded-l-none md:rounded-l-3xl md:rounded-r-3xl"
           />
         </div>
       </motion.div>
 
-      {/* What youll learn Section */}
+      {/* What you'll learn Section */}
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-10">
           What you&apos;ll learn
         </h2>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {learnCards.map((card, idx) => (
-            <div
-              key={idx}
-              className="relative bg-white shadow-md rounded-2xl p-6 border border-gray-200 overflow-hidden flex flex-col"
-            >
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {card.title}
-                </h3>
-                <p className="text-gray-600">{card.description}</p>
+          {course.notes && course.notes.length > 0 ? (
+            course.notes.slice(0, 3).map((note, idx) => (
+              <div
+                key={idx}
+                className="relative bg-white shadow-md rounded-2xl p-6 border border-gray-200 overflow-hidden flex flex-col"
+              >
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {note.split(".")[0]}
+                  </h3>
+                  <p className="text-gray-600 whitespace-pre-line">{note}</p>
+                </div>
+                <button className="flex items-center gap-2 text-blue-700 font-semibold hover:underline mt-auto cursor-pointer">
+                  Course content <ArrowRight size={18} />
+                </button>
+                <span className="absolute bottom-4 right-6 text-7xl font-extrabold text-gray-200/70 select-none">
+                  {idx + 1}
+                </span>
               </div>
-
-              {/* Button fixed at bottom */}
-              <button className="flex items-center gap-2 text-blue-700 font-semibold hover:underline mt-auto cursor-pointer">
-                Course content <ArrowRight size={18} />
-              </button>
-
-              {/* Big Number Background */}
-              <span className="absolute bottom-4 right-6 text-7xl font-extrabold text-gray-200/70 select-none">
-                {idx + 1}
-              </span>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500">No notes available.</p>
+          )}
         </div>
 
         {/* Skills Section */}
-        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-16 mb-8">
-          Learn the skills that matter most
-        </h2>
-        <div className="flex flex-wrap gap-4 cursor-pointer">
-          {skills.map((skill, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm"
-            >
-              <span className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg">
-                {"</>"}
-              </span>
-              <div>
-                <h4 className="font-semibold text-gray-800">{skill.title}</h4>
-                <p className="text-sm text-gray-500">{skill.learners}</p>
-              </div>
-            </div>
-          ))}
+    <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-16 mb-8">
+  Learn the skills that matter most
+</h2>
+
+<div className="flex flex-wrap gap-4 cursor-pointer">
+  {/* Remaining notes as skills */}
+  {course.notes && course.notes.length > 3 &&
+    course.notes.slice(3).map((note, idx) => (
+      <div
+        key={`note-skill-${idx}`}
+        className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm"
+      >
+        <span className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg">
+          {"</>"}
+        </span>
+        <div>
+          <h4 className="font-semibold text-gray-800">{note.split(".")[0]}</h4>
+          <p className="text-sm text-gray-500">{note}</p>
         </div>
+      </div>
+    ))}
+</div>
       </div>
     </div>
   );

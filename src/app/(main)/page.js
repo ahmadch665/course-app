@@ -123,76 +123,91 @@ export default function LandingPage() {
 
       {/* 📚 Featured Courses Carousel */}
       <motion.section className="py-20 bg-gray-50">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
-          Featured Courses
-        </h2>
+  <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
+    Featured Courses
+  </h2>
 
-        {loadingCourses ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : featuredCourses.length > 0 ? (
-          <div className="relative max-w-7xl mx-auto overflow-hidden">
-            <motion.div
-              ref={carouselRef}
-              className="flex gap-8 cursor-grab"
-              drag={isMobile ? "x" : false}
-              dragConstraints={isMobile ? dragConstraints : {}}
-              dragElastic={0.05}
-              onMouseEnter={() => !isMobile && controls.stop()}
-              onMouseLeave={() => {
-                if (!isMobile) {
-                  controls.start({
-                    x: ["0%", "-100%"],
-                    transition: {
-                      repeat: Infinity,
-                      duration: 20,
-                      ease: "linear",
-                    },
-                  });
-                }
-              }}
-              animate={!isMobile ? controls : undefined}
-            >
-              {[...featuredCourses, ...featuredCourses].map((course, idx) => (
-                <Link
-                  href={`/courses/${course._id}`}
-                  key={idx}
-                  className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
-                >
-                  <Image
-                    src={course.img || "/pyhton.jpg"}
-                    alt={course.title || "Course Image"}
-                    width={400}
-                    height={192}
-                    className="object-cover"
-                  />
-                  <div className="flex flex-col flex-1 p-4">
-                    <h3 className="text-xl font-semibold text-blue-700">
-                      {course.title}
-                    </h3>
-                    <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
-                      {course.desc ||
-                        course.description ||
-                        "No description available."}
-                    </p>
-                    {course.duration && (
-                      <p className="text-gray-500 mt-2 text-sm">
-                        Duration: {course.duration}
-                      </p>
-                    )}
-                    <button className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
-                      <PlayCircle size={18} /> Start Learning
-                    </button>
-                  </div>
-                </Link>
-              ))}
-            </motion.div>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center w-full">No courses found.</p>
-        )}
-      </motion.section>
+  {loadingCourses ? (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  ) : featuredCourses.length > 0 ? (
+    <div className="relative max-w-7xl mx-auto overflow-hidden">
+      <motion.div
+        ref={carouselRef}
+        className="flex gap-8 cursor-grab"
+        drag={isMobile ? "x" : false}
+        dragConstraints={isMobile ? dragConstraints : {}}
+        dragElastic={0.05}
+        onMouseEnter={() => !isMobile && controls.stop()}
+        onMouseLeave={() => {
+          if (!isMobile) {
+            controls.start({
+              x: ["0%", "-100%"],
+              transition: {
+                repeat: Infinity,
+                duration: 20,
+                ease: "linear",
+              },
+            });
+          }
+        }}
+        animate={!isMobile ? controls : undefined}
+      >
+        {[...featuredCourses, ...featuredCourses].map((course, idx) => (
+          <Link
+            href={`/courses/${course._id}`}
+            key={idx}
+            className="min-w-[300px] w-[300px] h-[350px] bg-white shadow-xl rounded-2xl 
+                       overflow-hidden border border-gray-100 hover:shadow-2xl 
+                       transition flex flex-col"
+          >
+            {/* Course Image */}
+            <Image
+              src={course.image || "/pyhton.jpg"}
+              alt={course.title || "Course Image"}
+              width={400}
+              height={160}
+              className="object-cover h-40 w-full"
+            />
+
+            {/* Card Content */}
+            <div className="flex flex-col flex-1 p-4">
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-blue-700 line-clamp-1">
+                {course.title}
+              </h3>
+
+              {/* Fixed-height description & duration */}
+              <div className="flex-1 mt-2">
+                <p className="text-gray-600 line-clamp-3 min-h-[60px]">
+                  {course.desc ||
+                    course.description ||
+                    "No description available."}
+                </p>
+                {course.duration && (
+                  <p className="text-gray-500 mb-2 text-sm ">
+                    Duration: {course.duration}
+                  </p>
+                )}
+              </div>
+
+              {/* Button always aligned */}
+              <button className="mt-auto w-full flex items-center justify-center gap-2 
+                                 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 
+                                 transition font-medium cursor-pointer">
+                <PlayCircle size={18} /> Start Learning
+              </button>
+            </div>
+          </Link>
+        ))}
+      </motion.div>
+    </div>
+  ) : (
+    <p className="text-gray-500 text-center w-full">No courses found.</p>
+  )}
+</motion.section>
+
 
       {/* 📰 Blogs Section */}
       <motion.section
