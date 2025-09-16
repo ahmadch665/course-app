@@ -73,19 +73,21 @@ export default function CoursesPage() {
             <div
               key={course._id || course.id}
               onClick={() => router.push(`/courses/${course._id || course.id}`)}
-              className="cursor-pointer bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
+              className=" bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition"
             >
-              <img
+              <Image
                 src={course.image || "/k.png"}
                 alt={course.title}
-                className="w-full h-40 object-cover"
+                width={400}
+                height={200}
+                className=" object-cover"
               />
               <div className="p-6">
                 <h3 className="text-xl font-semibold text-blue-700">
                   {course.title}
                 </h3>
                 <p className="text-gray-500 text-sm">{course.description}</p>
-                <button className="mt-4 flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+                <button className="cursor-pointer mt-4 flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
                   <PlayCircle size={18} /> Start Course
                 </button>
               </div>

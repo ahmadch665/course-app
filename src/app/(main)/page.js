@@ -161,11 +161,11 @@ export default function LandingPage() {
                   className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
                 >
                   <Image
-                    src={course.img || "/pyhton.jpg"}
+                    src={course.image || "/pyhton.jpg"}
                     alt={course.title || "Course Image"}
                     width={400}
-                    height={192}
-                    className="object-cover"
+                    height={200}
+                    className=" object-cover"
                   />
                   <div className="flex flex-col flex-1 p-4">
                     <h3 className="text-xl font-semibold text-blue-700">

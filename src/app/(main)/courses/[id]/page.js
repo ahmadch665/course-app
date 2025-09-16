@@ -123,7 +123,7 @@ export default function CourseDetailPage() {
           {/* Action Button */}
           <div className="flex items-center gap-6 mb-4">
   <button
-    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
     onClick={() => router.push(`/courses/${id}/content`)} // <-- navigation added
   >
     <PlayCircle size={20} /> Get started
@@ -136,8 +136,8 @@ export default function CourseDetailPage() {
           <Image
             src={course.image || "/l.webp"}
             alt={course.title}
-            width={500}
-            height={500}
+            width={400}
+            height={200}
             className="w-full h-full object-cover rounded-l-none md:rounded-l-3xl md:rounded-r-3xl"
           />
         </div>
