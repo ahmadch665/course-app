@@ -9,168 +9,210 @@ export default function AddCoursePage() {
     description: "",
     duration: "",
     price: "",
-    level: "",
+    level: "Beginner",
     instructor: "",
     startDate: "",
     endDate: "",
-    status: "active",
+    status: "active", // ✅ default lowercase
     notes: "",
-    image: "", // added image field
+    image: null, // file object
   });
 
-  const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Handle form input
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+
+    if (name === "image") {
+      setFormData((prev) => ({
+        ...prev,
+        image: files[0], // store file
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
-  // Add or update course
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage("");
 
     try {
-      if (editingCourse) {
-        await api.put(`/course/update/${editingCourse._id}`, formData);
-        alert("✅ Course updated successfully!");
-      } else {
-        await api.post("/course/addcourse", formData);
-        alert("✅ Course added successfully!");
-      }
+      const payload = new FormData();
+      payload.append("title", formData.title.trim());
+      payload.append("description", formData.description.trim());
+      payload.append("duration", formData.duration.trim());
+      payload.append("price", formData.price);
+      payload.append("level", formData.level);
+      payload.append("instructor", formData.instructor.trim());
+      if (formData.startDate) payload.append("startDate", formData.startDate);
+      if (formData.endDate) payload.append("endDate", formData.endDate);
+      payload.append("status", formData.status.toLowerCase()); // ✅ always lowercase
+      if (formData.notes) payload.append("notes", formData.notes.trim());
+      if (formData.image) payload.append("image", formData.image);
 
-      // Reset form
+      console.log("📤 Sending FormData...");
+
+      const response = await api.post("/course/addcourse", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log("✅ Course saved:", response.data);
+
+      setMessage("Course added successfully!");
       setFormData({
         title: "",
         description: "",
         duration: "",
         price: "",
-        level: "",
+        level: "Beginner",
         instructor: "",
         startDate: "",
         endDate: "",
         status: "active",
         notes: "",
-        image: "",
+        image: null,
       });
-      setEditingCourse(null);
     } catch (error) {
       console.error("❌ Error saving course:", error.response?.data || error);
-      alert("Error saving course.");
+      setMessage("Failed to save course. Check your inputs.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">➕ Add / Manage Course</h1>
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded">
+      <h1 className="text-2xl font-bold mb-4">Add New Course</h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-md mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
+      {message && (
+        <div
+          className={`mb-4 p-2 rounded ${
+            message.includes("successfully")
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           name="title"
-          placeholder="Course Title"
+          placeholder="Title"
           value={formData.title}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
           required
         />
-        <input
-          type="text"
+
+        <textarea
           name="description"
           placeholder="Description"
           value={formData.description}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
           required
         />
+
         <input
           type="text"
           name="duration"
           placeholder="Duration (e.g. 12 weeks)"
           value={formData.duration}
           onChange={handleChange}
-          className="border p-2 rounded"
-          required
+          className="w-full border p-2 rounded"
         />
+
         <input
           type="number"
           name="price"
           placeholder="Price"
           value={formData.price}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
           required
         />
-        <input
-          type="text"
+
+        <select
           name="level"
-          placeholder="Level (Beginner, Intermediate, Advanced)"
           value={formData.level}
           onChange={handleChange}
-          className="border p-2 rounded"
-        />
+          className="w-full border p-2 rounded"
+        >
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+
         <input
           type="text"
           name="instructor"
           placeholder="Instructor"
           value={formData.instructor}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
+          required
         />
+
         <input
           type="date"
           name="startDate"
           value={formData.startDate}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
         />
+
         <input
           type="date"
           name="endDate"
           value={formData.endDate}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
         />
+
+        {/* ✅ lowercase options */}
         <select
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
         >
-          <option value="active">Active</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="completed">Completed</option>
+          <option value="active">active</option>
+          <option value="inactive">inactive</option>
+          <option value="pending">pending</option>
         </select>
-        <input
-          type="text"
+
+        <textarea
           name="notes"
           placeholder="Notes"
           value={formData.notes}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
         />
+
         <input
-          type="text"
+          type="file"
           name="image"
-          placeholder="Image URL"
-          value={formData.image}
+          accept="image/*"
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
+          required
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="col-span-1 md:col-span-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
         >
-          {loading ? "Saving..." : editingCourse ? "Update Course" : "Add Course"}
+          {loading ? "Saving..." : "Save Course"}
         </button>
       </form>
     </div>
