@@ -33,7 +33,27 @@ export default function LandingPage() {
 
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
-const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
+
+  // ✅ Track screen size
+  useEffect(() => {
+    const checkScreen = () => setIsMobile(window.innerWidth < 768);
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+    return () => window.removeEventListener("resize", checkScreen);
+  }, []);
+
+  // ✅ Recalculate drag constraints on mobile
+  useEffect(() => {
+    if (carouselRef.current && isMobile) {
+      const maxDrag =
+        carouselRef.current.scrollWidth - carouselRef.current.offsetWidth;
+      setDragConstraints({ left: -maxDrag, right: 0 });
+    }
+  }, [isMobile, featuredCourses]);
+
+  // ✅ Fetch courses from API
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -58,22 +78,22 @@ const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
     };
 
     fetchCourses();
+  }, []);
 
-    controls.start({
-      x: ["0%", "-100%"],
-      transition: { repeat: Infinity, duration: 20, ease: "linear" },
-    });
-  }, [controls]);
+  // ✅ Auto scroll only on desktop
+  useEffect(() => {
+    if (!isMobile) {
+      controls.start({
+        x: ["0%", "-100%"],
+        transition: { repeat: Infinity, duration: 20, ease: "linear" },
+      });
+    } else {
+      controls.stop();
+    }
+  }, [isMobile, controls]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 relative">
-      {/* 🔄 Loader Overlay */}
-      {/* {loadingCourses && (
-          <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )} */}
-
       {/* 🌟 Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-24 px-6 md:px-12 text-center overflow-visible">
         <div className="absolute inset-0 opacity-20 bg-[url('/images/pattern.svg')] bg-cover"></div>
@@ -100,72 +120,77 @@ const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
       </section>
 
       {/* 📚 Featured Courses Carousel */}
-     <motion.section className="py-20 bg-gray-50">
-  <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
-    Featured Courses
-  </h2>
+      <motion.section className="py-20 bg-gray-50">
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
+          Featured Courses
+        </h2>
 
-  {loadingCourses ? (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  ) : featuredCourses.length > 0 ? (
-    <div className="relative max-w-7xl mx-auto overflow-hidden">
-<motion.div
-  ref={carouselRef}
-  className="flex gap-8 cursor-grab"
-  drag="x"
-  dragConstraints={{
-    left: -carouselRef.current?.scrollWidth + carouselRef.current?.offsetWidth || 0,
-    right: 0,
-  }}
-  dragElastic={0.05}
-  onMouseEnter={() => controls.stop()}
-  onMouseLeave={() => {
-    if (window.innerWidth >= 768) {
-      controls.start({
-        x: ["0%", "-100%"],
-        transition: { repeat: Infinity, duration: 20, ease: "linear" },
-      });
-    }
-  }}
-  animate={controls}
->
-  {[...featuredCourses, ...featuredCourses].map((course, idx) => (
-    <Link
-      href={`/courses/${course._id}`}
-      key={idx}
-      className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
-    >
-      <Image
-        src={course.img || "/pyhton.jpg"}
-        alt={course.title || "Course Image"}
-        width={400}
-        height={192}
-        className="object-cover"
-      />
-      <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-xl font-semibold text-blue-700">{course.title}</h3>
-        <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
-          {course.desc || course.description || "No description available."}
-        </p>
-        {course.duration && (
-          <p className="text-gray-500 mt-2 text-sm">Duration: {course.duration}</p>
+        {loadingCourses ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : featuredCourses.length > 0 ? (
+          <div className="relative max-w-7xl mx-auto overflow-hidden">
+            <motion.div
+              ref={carouselRef}
+              className="flex gap-8 cursor-grab"
+              drag={isMobile ? "x" : false} // ✅ drag only on mobile
+              dragConstraints={isMobile ? dragConstraints : {}}
+              dragElastic={0.05}
+              onMouseEnter={() => !isMobile && controls.stop()}
+              onMouseLeave={() => {
+                if (!isMobile) {
+                  controls.start({
+                    x: ["0%", "-100%"],
+                    transition: {
+                      repeat: Infinity,
+                      duration: 20,
+                      ease: "linear",
+                    },
+                  });
+                }
+              }}
+              animate={!isMobile ? controls : undefined} // ✅ auto scroll only desktop
+            >
+              {[...featuredCourses, ...featuredCourses].map((course, idx) => (
+                <Link
+                  href={`/courses/${course._id}`}
+                  key={idx}
+                  className="min-w-[300px] bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 hover:shadow-2xl transition flex flex-col"
+                >
+                  <Image
+                    src={course.img || "/pyhton.jpg"}
+                    alt={course.title || "Course Image"}
+                    width={400}
+                    height={192}
+                    className="object-cover"
+                  />
+                  <div className="flex flex-col flex-1 p-4">
+                    <h3 className="text-xl font-semibold text-blue-700">
+                      {course.title}
+                    </h3>
+                    <p className="text-gray-600 mt-2 flex-1 overflow-hidden">
+                      {course.desc ||
+                        course.description ||
+                        "No description available."}
+                    </p>
+                    {course.duration && (
+                      <p className="text-gray-500 mt-2 text-sm">
+                        Duration: {course.duration}
+                      </p>
+                    )}
+                    <button className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
+                      <PlayCircle size={18} /> Start Learning
+                    </button>
+                  </div>
+                </Link>
+              ))}
+            </motion.div>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center w-full">No courses found.</p>
         )}
-        <button className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">
-          <PlayCircle size={18} /> Start Learning
-        </button>
-      </div>
-    </Link>
-  ))}
-</motion.div>
-    </div>
-  ) : (
-    <p className="text-gray-500 text-center w-full">No courses found.</p>
-  )}
-</motion.section>
-
-
+      </motion.section>
 
       {/* 📰 Blogs Section */}
       <motion.section
@@ -190,11 +215,11 @@ const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
               className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl bg-gradient-to-br from-white to-gray-50"
             >
               <Image
-                src={blog.Img || "/images/default.jpg"} // fallback if blog.Image is undefined
+                src={blog.img || "/images/default.jpg"}
                 alt={blog.title || "Blog Image"}
                 width={400}
                 height={224}
-                className=" object-cover"
+                className="object-cover"
               />
               <div className="p-6">
                 <h3 className="text-xl font-bold text-blue-700">
@@ -256,5 +281,3 @@ const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
     </div>
   );
 }
-
-{/*hello world */}
