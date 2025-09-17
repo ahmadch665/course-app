@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { ChevronDown, ChevronUp, CheckCircle, Circle } from "lucide-react";
 
 export default function CourseContentPage() {
   const { id } = useParams();
@@ -10,8 +11,24 @@ export default function CourseContentPage() {
   const [courseContent, setCourseContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedModule, setExpandedModule] = useState(null);
+  const [completedModules, setCompletedModules] = useState([]);
+  const [isShrunk, setIsShrunk] = useState(false);
 
-  // ✅ Helper: convert any YouTube URL into embeddable format
+  const descRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!descRef.current) return;
+      setIsShrunk(descRef.current.scrollTop > 0);
+    };
+
+    const el = descRef.current;
+    if (el) el.addEventListener("scroll", handleScroll);
+    return () => {
+      if (el) el.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   const getEmbedUrl = (url) => {
     if (!url) return "";
     try {
@@ -39,6 +56,7 @@ export default function CourseContentPage() {
         );
         const data = res.data.data || res.data;
         setCourseContent(data);
+        setCompletedModules(Array(data.videoDescription?.length).fill(false));
       } catch (err) {
         console.error("Error fetching course content:", err);
       } finally {
@@ -55,97 +73,146 @@ export default function CourseContentPage() {
       </div>
     );
 
-  if (!courseContent)
-    return <p className="text-center mt-20">Content not found.</p>;
+  if (!courseContent) return <p className="text-center mt-20">Content not found.</p>;
 
-  // Determine current video URL
   const currentVideoUrl =
     expandedModule !== null
       ? courseContent.videoDescription[expandedModule]?.videoUrl ||
         courseContent.videoUrls?.[0]
-      : courseContent.videoUrls?.[0] ||
-        "https://www.youtube.com/embed/K5KVEU3aaeQ";
+      : courseContent.videoUrls?.[0] || "https://www.youtube.com/embed/K5KVEU3aaeQ";
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="container mx-auto px-4 py-8">
-        {/* Course Title */}
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-          {courseContent.title || "Course Title"}
-        </h1>
+  const toggleCompletion = (idx) => {
+    setCompletedModules((prev) =>
+      prev.map((done, i) => (i === idx ? !done : done))
+    );
+  };
 
-        {/* Layout: Sidebar + Video */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar: Modules */}
-          <div className="w-full lg:w-1/3 bg-white rounded-lg shadow-md min-h-[400px]">
-            {courseContent.videoDescription &&
-            courseContent.videoDescription.length > 0 ? (
-              courseContent.videoDescription.map((module, idx) => (
-                <div key={idx} className="border-b last:border-none">
-                  <button
-                    onClick={() =>
-                      setExpandedModule(expandedModule === idx ? null : idx)
-                    }
-                    className={`w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50 ${
-                      expandedModule === idx ? "bg-gray-100 font-semibold" : ""
-                    }`}
-                  >
-                    <span>{module.title || `Section ${idx + 1}`}</span>
-                    <span>{expandedModule === idx ? "▲" : "▼"}</span>
-                  </button>
+  const progress =
+    completedModules.length > 0
+      ? Math.round(
+          (completedModules.filter((x) => x).length / completedModules.length) * 100
+        )
+      : 0;
 
-                  <AnimatePresence initial={false}>
-                    {expandedModule === idx && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-4 bg-gray-50 space-y-3">
-                          {/* <p>
-                            <strong>Course Content:</strong>{" "}
-                            {courseContent.content ?? "No content available."}
-                          </p> */}
-                          <p>
-                            {/* <strong>Video Description:</strong>{" "} */}
-                            {courseContent.videoDescription ??
-                              "No video description available."}
-                          </p>
-                          <ul className="list-disc pl-5">
-                            {module.requirements &&
-                            module.requirements.length > 0 ? (
-                              module.requirements.map((req, rIdx) => (
-                                <li key={rIdx}>{req}</li>
-                              ))
-                            ) : (
-                              <li>No requirements listed.</li>
-                            )}
-                          </ul>
-                        </div>
-                      </motion.div>
+  const Sidebar = () => (
+  <div className="bg-white border-b lg:border-r lg:border-b-0 lg:w-80 flex flex-col">
+    <div className="overflow-y-auto flex-1">
+      {courseContent.videoDescription && courseContent.videoDescription.length > 0 ? (
+        courseContent.videoDescription.map((module, idx) => (
+          <div key={idx} className="border-b last:border-none">
+            <button
+              onClick={() =>
+                setExpandedModule(expandedModule === idx ? null : idx)
+              }
+              className={`w-full text-left px-4 py-3 flex justify-between items-center text-sm font-medium hover:bg-gray-50 transition ${
+                expandedModule === idx ? "bg-gray-100" : ""
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent expanding the section
+                    toggleCompletion(idx);
+                  }}
+                >
+                  {completedModules[idx] ? (
+                    <motion.span
+                      className="w-5 h-5 text-green-600 cursor-pointer"
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1.2 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      className="w-5 h-5 text-gray-400 cursor-pointer"
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Circle className="w-5 h-5" />
+                    </motion.span>
+                  )}
+                </span>
+                <span>{module.sectionName || `Section ${idx + 1}`}</span>
+              </div>
+              {expandedModule === idx ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+
+            <AnimatePresence initial={false}>
+              {expandedModule === idx && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 py-3 bg-gray-50 text-sm text-gray-700 space-y-3">
+                    {module.content && module.content.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {module.content.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No content available</p>
                     )}
-                  </AnimatePresence>
-                </div>
-              ))
-            ) : (
-              <p className="p-4">No modules available.</p>
-            )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+        ))
+      ) : (
+        <p className="p-4 text-sm">No modules available.</p>
+      )}
+    </div>
+  </div>
+);
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row">
+      <Sidebar />
 
-          {/* Video Panel */}
-          <div className="flex-1">
-            <div className="aspect-video rounded-lg overflow-hidden shadow-lg bg-black">
-              <iframe
-                className="w-full h-full"
-                src={getEmbedUrl(currentVideoUrl)}
-                title="Course Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </div>
+      <main className="flex-1 flex flex-col">
+        <motion.div
+          className="bg-black w-full"
+          animate={{ height: isShrunk ? "40vh" : "70vh" }}
+          transition={{ duration: 0.4 }}
+        >
+          <iframe
+            className="w-full h-full"
+            src={getEmbedUrl(currentVideoUrl)}
+            title="Course Video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </motion.div>
+
+        <div
+          ref={descRef}
+          onScroll={(e) => {
+            const scrollTop = e.currentTarget.scrollTop;
+            setIsShrunk(scrollTop > 10);
+          }}
+          className="bg-white p-6 border-t border-gray-200 overflow-y-scroll h-[60vh] scrollbar-hide"
+        >
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {courseContent.title || "Course Title"}
+          </h1>
+
+          <p className="text-gray-600 mb-4">
+            instructor: {courseContent.instructor?.userName || "Course description goes here."}
+          </p>
+
+          <p className="text-sm text-gray-500 whitespace-pre-line leading-relaxed">
+            {courseContent.transcription || "Unknown"}
+          </p>
+
+          <div className="h-32"></div>
         </div>
       </main>
     </div>

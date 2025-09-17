@@ -54,14 +54,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  const skills = [
-    { title: "Web Development", learners: "14M learners" },
-    { title: "JavaScript", learners: "18M learners" },
-    { title: "HTML", learners: "12M learners" },
-    { title: "CSS", learners: "9.9M learners" },
-    { title: "Node.Js", learners: "3.4M learners" },
-  ];
-
   return (
     <div className="bg-gray-50 px-6 md:px-12 py-12">
       {/* Course Header Section */}
@@ -72,59 +64,69 @@ export default function CourseDetailPage() {
         className="max-w-7xl mx-auto bg-white rounded-3xl shadow-xl flex flex-col md:flex-row overflow-hidden mb-16"
       >
         {/* Left Content */}
-        <div className="flex-1 p-10 md:p-16 flex flex-col justify-between">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
-              {course.title}
-            </h1>
-            <p className="text-gray-700 text-lg md:text-xl mb-8 whitespace-pre-line">
-              {course.description || "No description available."}
-            </p>
-          </div>
+<div className="flex-1 p-8 md:p-16 flex flex-col justify-between bg-white   overflow-hidden">
+  <div className="mb-8">
+    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+      {course.title}
+    </h1>
+    <p className="text-gray-700 text-base md:text-lg mb-6 whitespace-pre-line leading-relaxed">
+      {course.description || "No description available."}
+    </p>
+  </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-6 text-center text-gray-700">
-            {course.duration && (
-              <div>
-                <span className="font-bold">{course.duration}</span>
-                <p className="text-sm">Duration</p>
-              </div>
-            )}
-            {course.level && (
-              <div>
-                <span className="font-bold">{course.level}</span>
-                <p className="text-sm">Level</p>
-              </div>
-            )}
-            {course.price && (
-              <div>
-                <span className="font-bold">${course.price}</span>
-                <p className="text-sm">Price</p>
-              </div>
-            )}
-          </div>
+  {/* Stats */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-center text-gray-700">
+    {course.duration && (
+      <div className="bg-gray-50 rounded-xl py-4 shadow-sm hover:shadow-md transition">
+        <span className="font-semibold text-lg block">{course.duration}</span>
+        <p className="text-sm text-gray-500 mt-1">Duration</p>
+      </div>
+    )}
+    {course.level && (
+      <div className="bg-gray-50 rounded-xl py-4 shadow-sm hover:shadow-md transition">
+        <span className="font-semibold text-lg block">{course.level}</span>
+        <p className="text-sm text-gray-500 mt-1">Level</p>
+      </div>
+    )}
+    {course.price && (
+      <div className="bg-gray-50 rounded-xl py-4 shadow-sm hover:shadow-md transition">
+        <span className="font-semibold text-lg block">${course.price}</span>
+        <p className="text-sm text-gray-500 mt-1">Price</p>
+      </div>
+    )}
+    {course.instructor && (
+      <div className="bg-gray-50 rounded-xl py-4 shadow-sm hover:shadow-md transition">
+        <span className="font-semibold text-lg block">
+          {course.instructor.userName || "Unknown"}
+        </span>
+        <p className="text-sm text-gray-500 mt-1">Instructor</p>
+      </div>
+    )}
+  </div>
 
-          {/* Action Button */}
-          <div className="flex items-center gap-6 mb-4">
-            <button
-              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
-              onClick={() => router.push(`/courses/${id}/content`)}
-            >
-              <PlayCircle size={20} /> Get started
-            </button>
-          </div>
-        </div>
+  {/* Action Button */}
+  <div className="flex items-center gap-6">
+    <button
+      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
+      onClick={() => router.push(`/courses/${id}/content`)}
+    >
+      <PlayCircle size={20} /> Get started
+    </button>
+  </div>
+</div>
 
-        {/* Right Image */}
-        <div className="flex-1 relative bg-gradient-to-tr from-orange-200 to-orange-300 flex items-center justify-center">
-          <Image
-            src={course.image || "/l.webp"}
-            alt={course.title || "Course image"}
-            width={520}
-            height={200}
-            className="object-cover rounded-l-none md:rounded-l-3xl md:rounded-r-3xl"
-          />
-        </div>
+{/* Right Image */}
+<div className="flex-1 relative flex items-center justify-center overflow-hidden ">
+  <Image
+    src={course.image || "/l.webp"}
+    alt={course.title || "Course image"}
+    width={520}
+    height={200}
+    className="object-cover bg-white w-110 h-80 rounded-3xl"
+  />
+</div>
+
+
       </motion.div>
 
       {/* What you'll learn Section */}
@@ -160,28 +162,31 @@ export default function CourseDetailPage() {
         </div>
 
         {/* Skills Section */}
-    <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-16 mb-8">
-  Learn the skills that matter most
-</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-16 mb-8">
+          Learn the skills that matter most
+        </h2>
 
-<div className="flex flex-wrap gap-4 cursor-pointer">
-  {/* Remaining notes as skills */}
-  {course.notes && course.notes.length > 3 &&
-    course.notes.slice(3).map((note, idx) => (
-      <div
-        key={`note-skill-${idx}`}
-        className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm"
-      >
-        <span className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg">
-          {"</>"}
-        </span>
-        <div>
-          <h4 className="font-semibold text-gray-800">{note.split(".")[0]}</h4>
-          <p className="text-sm text-gray-500">{note}</p>
+        <div className="flex flex-wrap gap-4 cursor-pointer">
+          {/* Remaining notes as skills */}
+          {course.notes &&
+            course.notes.length > 3 &&
+            course.notes.slice(3).map((note, idx) => (
+              <div
+                key={`note-skill-${idx}`}
+                className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm"
+              >
+                <span className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg">
+                  {"</>"}
+                </span>
+                <div>
+                  <h4 className="font-semibold text-gray-800">
+                    {note.split(".")[0]}
+                  </h4>
+                  {/* <p className="text-sm text-gray-500">{note}</p> */}
+                </div>
+              </div>
+            ))}
         </div>
-      </div>
-    ))}
-</div>
       </div>
     </div>
   );
