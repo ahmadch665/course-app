@@ -13,6 +13,9 @@ export default function LandingPage() {
   const controls = useAnimation();
   const carouselRef = useRef(null);
 
+  // ✅ Kitne courses dikhane hain
+  const LATEST_COURSES_COUNT = 5;
+
   const blogs = [
     {
       title: "Top 10 React Tips",
@@ -44,7 +47,7 @@ export default function LandingPage() {
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  // ✅ Fetch courses
+  // ✅ Fetch only latest N courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -52,14 +55,28 @@ export default function LandingPage() {
           "https://course-app-tvgx.onrender.com/api/course/allcourses"
         );
 
+        let courses = [];
         if (Array.isArray(res.data)) {
-          setFeaturedCourses(res.data);
+          courses = res.data;
         } else if (Array.isArray(res.data.data)) {
-          setFeaturedCourses(res.data.data);
+          courses = res.data.data;
         } else {
           console.error("Unexpected API response:", res.data);
-          setFeaturedCourses([]);
         }
+
+        // ✅ agar createdAt hai to sort karo warna direct slice
+        let latestCourses = courses;
+
+        if (courses.length > 0 && courses[0].createdAt) {
+          latestCourses = [...courses].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+        }
+
+        // ✅ sirf pehle N courses lo
+        latestCourses = latestCourses.slice(0, LATEST_COURSES_COUNT);
+
+        setFeaturedCourses(latestCourses);
       } catch (err) {
         console.error("Error fetching courses:", err);
         setFeaturedCourses([]);
@@ -90,7 +107,6 @@ export default function LandingPage() {
     } else {
       controls.stop();
     }
-    // ✅ only depend on isMobile (fixes console error)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile]);
 
@@ -127,88 +143,84 @@ export default function LandingPage() {
           Featured Courses
         </h2>
 
-        {loadingCourses ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+       {loadingCourses ? (
+  <div className="flex items-center justify-center py-20">
+    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+) : featuredCourses.length > 0 ? (
+  <div className="relative max-w-7xl mx-auto overflow-hidden">
+    <motion.div
+      ref={carouselRef}
+      className="flex gap-8 cursor-grab"
+      drag={isMobile ? "x" : false}
+      dragConstraints={isMobile ? dragConstraints : {}}
+      dragElastic={0.05}
+      onMouseEnter={() => !isMobile && controls.stop()}
+      onMouseLeave={() => {
+        if (!isMobile) {
+          controls.start({
+            x: ["0%", "-100%"],
+            transition: {
+              repeat: Infinity,
+              duration: 20,
+              ease: "linear",
+            },
+          });
+        }
+      }}
+      animate={!isMobile ? controls : undefined}
+    >
+      {/* 🔁 Duplicate array for infinite loop */}
+      {[...featuredCourses, ...featuredCourses].map((course, idx) => (
+        <Link
+          href={`/courses/${course._id}`}
+          key={`${course._id}-${idx}`}
+          className="min-w-[320px] w-[320px] bg-white rounded-2xl shadow-md border border-gray-100 
+            overflow-hidden flex flex-col"
+        >
+          {/* Image */}
+          <div className="relative h-36 w-full overflow-hidden">
+            <Image
+              src={course.image || "/python.jpg"}
+              alt={course.title || "Course Image"}
+              fill
+              className="object-cover transform hover:scale-105 transition-transform duration-500"
+            />
           </div>
-        ) : featuredCourses.length > 0 ? (
-          <div className="relative max-w-7xl mx-auto overflow-hidden">
-            <motion.div
-              ref={carouselRef}
-              className="flex gap-8 cursor-grab"
-              drag={isMobile ? "x" : false}
-              dragConstraints={isMobile ? dragConstraints : {}}
-              dragElastic={0.05}
-              onMouseEnter={() => !isMobile && controls.stop()}
-              onMouseLeave={() => {
-                if (!isMobile) {
-                  controls.start({
-                    x: ["0%", "-100%"],
-                    transition: {
-                      repeat: Infinity,
-                      duration: 20,
-                      ease: "linear",
-                    },
-                  });
-                }
-              }}
-              animate={!isMobile ? controls : undefined}
+
+          {/* Content */}
+          <div className="p-4 flex flex-col flex-1 bg-gradient-to-br from-white to-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                {course.title}
+              </h3>
+              {course.duration && (
+                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  {course.duration}
+                </span>
+              )}
+            </div>
+            <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+              {course.desc ||
+                course.description ||
+                "No description available."}
+            </p>
+            <button
+              className="mt-auto w-full bg-blue-600 text-white text-sm py-2 rounded-xl 
+                font-medium hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2"
             >
-              {[...featuredCourses, ...featuredCourses].map((course, idx) => (
-                <Link
-                  href={`/courses/${course._id}`}
-                  key={idx}
-                  className="min-w-[280px] w-[280px] bg-white rounded-xl shadow-md border border-gray-200 
-             hover:shadow-lg transition overflow-hidden flex flex-col"
-                >
-                  {/* Image */}
-                  <div className="relative h-40 w-full">
-                    <Image
-                      src={course.image || "/python.jpg"}
-                      alt={course.title || "Course Image"}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4 flex flex-col flex-1">
-                    {/* Title */}
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-                      {course.title}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                      {course.desc ||
-                        course.description ||
-                        "No description available."}
-                    </p>
-
-                    {/* Duration */}
-                    {course.duration && (
-                      <p className="text-gray-500 text-xs mt-2">
-                        Duration: {course.duration}
-                      </p>
-                    )}
-
-                    {/* Button */}
-                    <button
-                      className="mt-4 w-full bg-blue-600 text-white text-sm py-2 rounded-md 
-                 font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <PlayCircle size={16} /> Start Learning
-                    </button>
-                  </div>
-                </Link>
-              ))}
-            </motion.div>
+              <PlayCircle size={16} /> Start Learning
+            </button>
           </div>
-        ) : (
-          <p className="text-gray-500 text-center w-full">No courses found.</p>
-        )}
-      </motion.section>
+        </Link>
+      ))}
+    </motion.div>
+  </div>
+) : (
+  <p className="text-gray-500 text-center w-full">No courses found.</p>
+)}
 
+      </motion.section>
       {/* 📰 Blogs Section */}
       <motion.section
         className="py-20 px-6 md:px-12 bg-white"

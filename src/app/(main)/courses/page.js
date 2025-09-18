@@ -98,9 +98,9 @@ export default function CoursesPage() {
                   {course.duration && (
                     <span
                       className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 
-                         px-2 py-1 rounded-full"
+                         px-2 py-1 rounded"
                     >
-                      ⏳ {course.duration}
+                      {course.duration}
                     </span>
                   )}
                 </div>
