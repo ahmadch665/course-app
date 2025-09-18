@@ -17,8 +17,10 @@ const UsersPage = () => {
   const [tableLoading, setTableLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [editUserId, setEditUserId] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingField, setEditingField] = useState({ id: null, field: null });
+  const [tempValue, setTempValue] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL"); // New state for role filter
 
   // --- Fetch users ---
   const fetchUsers = async () => {
@@ -62,6 +64,7 @@ const UsersPage = () => {
     try {
       await api.post("/users/adduser", formData);
       alert("User added successfully!");
+      setIsModalOpen(false);
       await fetchUsers();
       setFormData({
         userName: "",
@@ -69,6 +72,7 @@ const UsersPage = () => {
         password: "",
         phone: "",
         role: "",
+        status: "active"
       });
     } catch (err) {
       const message = err.response?.data?.message || "Adding user failed";
@@ -93,24 +97,26 @@ const UsersPage = () => {
     }
   };
 
-  // --- Edit User ---
-  const handleEditClick = (user) => {
-    setEditUserId(user._id);
-    setEditFormData({ ...user });
+  // --- Inline Edit Functions ---
+  const handleFieldClick = (id, field, value) => {
+    setEditingField({ id, field });
+    setTempValue(value);
   };
 
-  const handleEditChange = (e) => {
-    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  const handleInlineChange = (e) => {
+    setTempValue(e.target.value);
   };
 
-  const handleEditSave = async (id) => {
+  const handleInlineSave = async (id) => {
     try {
-      // ✅ Corrected: update API expects body, not params
-      const payload = { id: id, ...editFormData };
+      const updatedUser = users.find(user => user._id === id);
+      const updatedField = { [editingField.field]: tempValue };
+      
+      const payload = { id, ...updatedUser, ...updatedField };
       await api.put("/users/updateuser", payload);
 
-      alert("User updated!");
-      setEditUserId(null);
+      setEditingField({ id: null, field: null });
+      setTempValue("");
       await fetchUsers();
     } catch (err) {
       console.error("❌ Update error:", err.response?.data || err.message);
@@ -118,22 +124,30 @@ const UsersPage = () => {
     }
   };
 
-  const handleEditCancel = () => {
-    setEditUserId(null);
-    setEditFormData({});
+  const handleInlineCancel = () => {
+    setEditingField({ id: null, field: null });
+    setTempValue("");
   };
 
-  // --- Search ---
+  // --- Search and Filter ---
   const filteredUsers = (() => {
-    if (!search) return users;
+    let result = users;
+
+    // Apply role filter
+    if (roleFilter !== "ALL") {
+      result = result.filter(user => user.role === roleFilter);
+    }
+
+    // Apply search filter
+    if (!search) return result;
 
     const lowerSearch = search.toLowerCase();
 
-    const startsWith = users.filter((user) =>
+    const startsWith = result.filter((user) =>
       user.userName?.toLowerCase().startsWith(lowerSearch)
     );
 
-    const contains = users.filter(
+    const contains = result.filter(
       (user) =>
         user.userName?.toLowerCase().includes(lowerSearch) &&
         !user.userName?.toLowerCase().startsWith(lowerSearch)
@@ -142,135 +156,225 @@ const UsersPage = () => {
     return [...startsWith, ...contains];
   })();
 
+  // Render editable field or static text
+  const renderEditableField = (user, field, label) => {
+    const isEditing = editingField.id === user._id && editingField.field === field;
+    
+    if (isEditing) {
+      if (field === "role" || field === "status") {
+        return (
+          <select
+            value={tempValue}
+            onChange={handleInlineChange}
+            className="w-full px-2 py-1 border rounded"
+          >
+            {field === "role" ? (
+              <>
+                <option value="ADMIN">Admin</option>
+                <option value="INSTRUCTOR">Instructor</option>
+                <option value="STUDENT">Student</option>
+              </>
+            ) : (
+              <>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="inactive">Inactive</option>
+              </>
+            )}
+          </select>
+        );
+      }
+      
+      return (
+        <input
+          type={field === "email" ? "email" : "text"}
+          value={tempValue}
+          onChange={handleInlineChange}
+          className="w-full px-2 py-1 border rounded"
+          autoFocus
+        />
+      );
+    }
+    
+    return (
+      <div 
+        className="min-h-[2rem] py-1 cursor-pointer hover:bg-gray-100 rounded"
+        onClick={() => handleFieldClick(user._id, field, user[field] || "")}
+      >
+        {user[field] || label}
+      </div>
+    );
+  };
+
   return (
     <div className="p-6">
-      {/* ✅ Add User Form */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6 max-w-4xl mx-auto">
-        <h3 className="text-lg font-bold mb-4">Add New User</h3>
-        <form
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          onSubmit={handleSubmit}
-        >
-          <div>
-            <label htmlFor="userName" className="block mb-1 font-medium">
-              Username
-            </label>
+      {/* Modal Backdrop */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Add New User</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="userName" className="block mb-1 font-medium">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  id="userName"
+                  value={formData.userName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block mb-1 font-medium">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block mb-1 font-medium">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="phone" className="block mb-1 font-medium">
+                  Phone
+                </label>
+                <input
+                  type="text"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="role" className="block mb-1 font-medium">
+                  Role
+                </label>
+                <select
+                  id="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Role</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="INSTRUCTOR">Instructor</option>
+                  <option value="STUDENT">Student</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block mb-1 font-medium">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-sm md:col-span-2">{error}</p>
+              )}
+
+              <div className="md:col-span-2 flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? "Adding..." : "Add User"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Users List with Inline Edit + Delete */}
+      <div className="bg-white rounded-xl shadow-md p-6 max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h3 className="text-xl font-bold">Users List</h3>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <span>+</span> Add User
+          </button>
+        </div>
+
+        {/* 🔍 Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1">
             <input
               type="text"
-              id="userName"
-              value={formData.userName}
-              onChange={handleChange}
+              placeholder="Search by username..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
             />
           </div>
-
-          <div>
-            <label htmlFor="email" className="block mb-1 font-medium">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block mb-1 font-medium">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block mb-1 font-medium">
-              Phone
-            </label>
-            <input
-              type="text"
-              id="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label htmlFor="role" className="block mb-1 font-medium">
-              Role
-            </label>
+          
+          <div className="w-full sm:w-48">
             <select
-              id="role"
-              value={formData.role}
-              onChange={handleChange}
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
             >
-              <option value="">Select Role</option>
+              <option value="ALL">All Roles</option>
               <option value="ADMIN">Admin</option>
               <option value="INSTRUCTOR">Instructor</option>
               <option value="STUDENT">Student</option>
             </select>
           </div>
-
-          <div className="md:col-span-2">
-            <label htmlFor="status" className="block mb-1 font-medium">
-              Status
-            </label>
-            <select
-              id="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-
-          {error && (
-            <p className="text-red-500 text-sm md:col-span-2">{error}</p>
-          )}
-
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? "Adding..." : "Add User"}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* ✅ Users List with Edit + Delete */}
-      <div className="bg-white rounded-xl shadow-md p-6 max-w-5xl mx-auto">
-        <h3 className="text-lg font-bold mb-4">Users List</h3>
-
-        {/* 🔍 Search Bar */}
-        <div className="mb-4 flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            placeholder="Search by username..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
         </div>
 
         {/* Table */}
@@ -296,105 +400,48 @@ const UsersPage = () => {
                       key={user._id}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      {editUserId === user._id ? (
-                        <>
-                          <td className="p-3">
-                            <input
-                              name="userName"
-                              value={editFormData.userName}
-                              onChange={handleEditChange}
-                              className="border px-2 py-1 rounded"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <input
-                              name="email"
-                              value={editFormData.email}
-                              onChange={handleEditChange}
-                              className="border px-2 py-1 rounded"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <input
-                              name="phone"
-                              value={editFormData.phone}
-                              onChange={handleEditChange}
-                              className="border px-2 py-1 rounded"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <select
-                              name="role"
-                              value={editFormData.role}
-                              onChange={handleEditChange}
-                              className="border px-2 py-1 rounded"
-                            >
-                              <option value="ADMIN">Admin</option>
-                              <option value="INSTRUCTOR">Instructor</option>
-                              <option value="STUDENT">Student</option>
-                            </select>
-                          </td>
-                          <td className="p-3">
-                            <select
-                              name="status"
-                              value={editFormData.status || "active"}
-                              onChange={handleEditChange}
-                              className="border px-2 py-1 rounded"
-                            >
-                              <option value="active">Active</option>
-                              <option value="suspended">Suspended</option>
-                              <option value="inactive">Inactive</option>
-                            </select>
-                          </td>
-
-                          <td className="p-3 flex gap-2">
-                            <button
-                              onClick={() => handleEditSave(user._id)}
-                              className="px-3 py-1 bg-green-600 text-white rounded"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={handleEditCancel}
-                              className="px-3 py-1 bg-gray-500 text-white rounded"
-                            >
-                              Cancel
-                            </button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-3">{user.userName}</td>
-                          <td className="p-3">{user.email}</td>
-                          <td className="p-3">{user.phone}</td>
-                          <td className="p-3">{user.role}</td>
-                          <td className="p-3">
-                            <span
-                              className={`px-2 py-1 rounded text-white text-sm ${
-                                user.status === "active"
-                                  ? "bg-green-600"
-                                  : "bg-red-600"
-                              }`}
-                            >
-                              {user.status || "inactive"}
-                            </span>
-                          </td>
-                          <td className="p-3 flex gap-2">
-                            <button
-                              onClick={() => handleEditClick(user)}
-                              className="px-3 py-1 bg-blue-600 text-white rounded"
-                            >
-                              Edit
-                            </button>
+                      <td className="p-3">
+                        {renderEditableField(user, "userName", "Click to add username")}
+                      </td>
+                      <td className="p-3">
+                        {renderEditableField(user, "email", "Click to add email")}
+                      </td>
+                      <td className="p-3">
+                        {renderEditableField(user, "phone", "Click to add phone")}
+                      </td>
+                      <td className="p-3">
+                        {renderEditableField(user, "role", "Click to set role")}
+                      </td>
+                      <td className="p-3">
+                        {renderEditableField(user, "status", "active")}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          {editingField.id === user._id ? (
+                            <>
+                              <button
+                                onClick={() => handleInlineSave(user._id)}
+                                className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleInlineCancel}
+                                className="px-3 py-1 bg-gray-500 text-white rounded text-sm"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
                             <button
                               onClick={() => handleDelete(user._id)}
-                              className="px-3 py-1 bg-red-600 text-white rounded"
+                              className="px-3 py-1 bg-red-600 text-white rounded text-sm"
                             >
                               Delete
                             </button>
-                          </td>
-                        </>
-                      )}
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))
                 ) : (

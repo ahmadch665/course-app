@@ -15,6 +15,7 @@ export default function AllCoursesPage() {
     title: "",
     description: "",
     transcription: "",
+    courseContent: "",
     duration: "",
     price: "",
     level: "Beginner",
@@ -70,6 +71,7 @@ export default function AllCoursesPage() {
         title: course.title || "",
         description: course.description || "",
         transcription: course.transcription || "",
+                courseContent: course.courseContent || "",
         price: course.price || 0,
         level: course.level || "",
         instructor:
@@ -116,6 +118,7 @@ export default function AllCoursesPage() {
       formData.append("title", data.title);
       formData.append("description", data.description);
       formData.append("transcription", data.transcription);
+      formData.append("courseContent", data.courseContent);
       formData.append("price", data.price);
       formData.append("level", data.level);
       formData.append("instructor", data.instructor);
@@ -206,6 +209,7 @@ export default function AllCoursesPage() {
       payload.append("title", newCourseData.title.trim());
       payload.append("description", newCourseData.description.trim());
       payload.append("transcription", newCourseData.transcription.trim());
+      payload.append("courseContent", newCourseData.courseContent.trim());
       payload.append("duration", newCourseData.duration.trim());
       payload.append("price", newCourseData.price);
       payload.append("level", newCourseData.level);
@@ -236,6 +240,7 @@ export default function AllCoursesPage() {
         title: "",
         description: "",
         transcription: "",
+        courseContent: "",
         duration: "",
         price: "",
         level: "Beginner",
@@ -445,6 +450,30 @@ export default function AllCoursesPage() {
                               [selectedCourse._id]: {
                                 ...prev[selectedCourse._id],
                                 transcription: e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="Transcription"
+                        />
+                      </div>
+
+
+
+                        <div>
+                        <label className="block font-semibold mb-1">
+                          Course Content:
+                        </label>
+                        <textarea
+                          className="w-full border px-2 py-1 rounded"
+                          value={
+                            editData[selectedCourse._id]?.courseContent || ""
+                          }
+                          onChange={(e) =>
+                            setEditData((prev) => ({
+                              ...prev,
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
+                                courseContent: e.target.value,
                               },
                             }))
                           }
@@ -885,6 +914,18 @@ export default function AllCoursesPage() {
                 />
               </div>
               
+ <div>
+                <label className="block font-semibold mb-1">Course Content:</label>
+                <textarea
+                  name="courseContent"
+                  placeholder="Course Content"
+                  value={newCourseData.courseContent}
+                  onChange={handleAddCourseChange}
+                  className="w-full border px-2 py-1 rounded"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block font-semibold mb-1">Price:</label>
                 <input

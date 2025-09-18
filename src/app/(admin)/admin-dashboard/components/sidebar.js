@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FiMenu, FiUser, FiUsers, FiBook, FiHome, FiChevronDown } from "react-icons/fi";
+import { FiMenu, FiUser, FiUsers, FiBook, FiHome, FiChevronDown, FiFile } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -41,25 +41,41 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard")}
           >
-            <FiHome />
+           <lord-icon
+  src="https://cdn.lordicon.com/hjbsbdhw.json"
+  trigger="loop"
+  style={{ width: "24px", height: "24px" }}
+></lord-icon>
+
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Home</span>
           </li>
 
-          {/* Users (no dropdown) */}
+         
           <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard/users")}
           >
-            <FiUsers />
+           <lord-icon
+    src="https://cdn.lordicon.com/dxjqoygy.json"
+    trigger="loop"
+    delay="2000"
+     style={{ width: "24px", height: "24px" }}>
+</lord-icon>
+
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Users</span>
           </li>
 
-          {/* Courses Dropdown */}
+      
            <li
             className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
             onClick={() => router.push("/admin-dashboard/courses")}
           >
-            <FiUsers />
+          <lord-icon
+  src="https://cdn.lordicon.com/dxoycpzg.json"
+  trigger="loop"
+  style={{ width: "24px", height: "24px" }}
+></lord-icon>
+
             <span className={`${sidebarOpen ? "block" : "hidden"}`}>Courses</span>
           </li>
         </ul>

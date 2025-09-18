@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./components/sidebar"; 
 import Topbar from "./components/topbar";   
+import Script from "next/script"; // ✅ added
 
 export default function AdminDashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,12 @@ export default function AdminDashboardLayout({ children }) {
         <Topbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <div className="p-6">{children}</div>
       </main>
+
+      {/* ✅ Lordicon script added */}
+      <Script
+        src="https://cdn.lordicon.com/lusqsztk.js"
+        strategy="beforeInteractive"
+      />
     </div>
   );
 }
