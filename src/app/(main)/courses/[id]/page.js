@@ -211,9 +211,9 @@ export default function CourseDetailPage() {
       transition={{ duration: 0.4 }}
       className="mt-12 bg-white rounded-2xl shadow-md p-6 border border-gray-200"
     >
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+      {/* <h3 className="text-2xl font-bold text-gray-900 mb-6">
         Course Content
-      </h3>
+      </h3> */}
 
       {course.courseContent ? (
         <p className="text-gray-700 whitespace-pre-line">{course.courseContent}</p>
