@@ -11,6 +11,7 @@ export default function Navbar() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
@@ -26,14 +27,14 @@ export default function Navbar() {
     e.preventDefault();
     if (search.trim()) {
       router.push(`/search?q=${encodeURIComponent(search)}`);
-      setSuggestions([]); // ✅ dropdown band ho jaye
+      setSuggestions([]);
+      setMobileSearchOpen(false);
     }
   };
 
-  // ✅ Fetch suggestions jab user type kare
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (search.trim().length === 0) {
+      if (!search.trim()) {
         setSuggestions([]);
         return;
       }
@@ -43,19 +44,12 @@ export default function Navbar() {
           `https://course-app-tvgx.onrender.com/api/course/allcourses`
         );
 
-        let courses = [];
-        if (Array.isArray(res.data)) {
-          courses = res.data;
-        } else if (Array.isArray(res.data.data)) {
-          courses = res.data.data;
-        }
+        let courses = Array.isArray(res.data) ? res.data : res.data.data || [];
 
-        // ✅ Search text kahin bhi match ho (not just first letter)
         const filtered = courses.filter((c) =>
           c.title?.toLowerCase().includes(search.toLowerCase())
         );
 
-        // ✅ Sirf pehle 5 dikhaye
         setSuggestions(filtered.slice(0, 5));
       } catch (err) {
         console.error("Error fetching suggestions:", err);
@@ -63,8 +57,8 @@ export default function Navbar() {
       }
     };
 
-    const delayDebounce = setTimeout(fetchSuggestions, 300); // debounce 300ms
-    return () => clearTimeout(delayDebounce);
+    const debounce = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounce);
   }, [search]);
 
   return (
@@ -80,23 +74,14 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/" className="hover:text-blue-600 transition">
-            Home
-          </Link>
-          <Link href="/courses" className="hover:text-blue-600 transition">
-            Courses
-          </Link>
-          <Link href="/about" className="hover:text-blue-600 transition">
-            About
-          </Link>
-          <Link href="/contact" className="hover:text-blue-600 transition">
-            Contact
-          </Link>
+          <Link href="/" className="hover:text-blue-600 transition">Home</Link>
+          <Link href="/courses" className="hover:text-blue-600 transition">Courses</Link>
+          <Link href="/about" className="hover:text-blue-600 transition">About</Link>
+          <Link href="/contact" className="hover:text-blue-600 transition">Contact</Link>
         </div>
 
         {/* Desktop Search + Login */}
         <div className="hidden md:flex items-center gap-4 relative">
-          {/* 🔍 Search Bar */}
           <form
             onSubmit={handleSearch}
             className="flex items-center bg-gray-100 rounded-full border border-gray-300 
@@ -112,7 +97,6 @@ export default function Navbar() {
             />
           </form>
 
-          {/* ✅ Suggestions Dropdown */}
           {suggestions.length > 0 && (
             <ul className="absolute top-12 left-0 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
               {suggestions.map((course) => (
@@ -131,7 +115,6 @@ export default function Navbar() {
             </ul>
           )}
 
-          {/* Login Button */}
           <button
             onClick={handleSignUpClick}
             className="px-3 py-1 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
@@ -140,53 +123,42 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Hamburger */}
-        <div className="md:hidden flex items-center">
+        {/* Mobile Hamburger + Search Icon */}
+        <div className="md:hidden flex items-center gap-2">
+          <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)}>
+            <Search size={24} />
+          </button>
+
           <button onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Search Bar with Slide Animation */}
       <AnimatePresence>
-        {menuOpen && (
+        {mobileSearchOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white shadow-lg px-6 py-4 flex flex-col gap-4 overflow-hidden"
+            className="md:hidden px-6 py-2"
           >
-            <Link href="/" onClick={() => setMenuOpen(false)}>
-              Home
-            </Link>
-            <Link href="/courses" onClick={() => setMenuOpen(false)}>
-              Courses
-            </Link>
-            <Link href="/about" onClick={() => setMenuOpen(false)}>
-              About
-            </Link>
-            <Link href="/contact" onClick={() => setMenuOpen(false)}>
-              Contact
-            </Link>
-
-            {/* 🔍 Mobile Search */}
             <form
               onSubmit={handleSearch}
-              className="flex items-center bg-gray-100 rounded-full border border-gray-300 px-4 py-2 relative"
+              className="flex items-center bg-gray-100 rounded-full border border-gray-300 px-4 py-1 w-full focus-within:border-blue-500 transition-colors duration-300"
             >
               <Search className="text-gray-400 w-4 h-4 mr-2" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder="Search courses..."
                 className="bg-transparent outline-none flex-1 text-sm"
               />
             </form>
 
-            {/* ✅ Mobile Suggestions */}
             {suggestions.length > 0 && (
               <ul className="bg-white border border-gray-200 rounded-lg shadow-lg mt-2">
                 {suggestions.map((course) => (
@@ -196,6 +168,7 @@ export default function Navbar() {
                       router.push(`/courses/${course._id}`);
                       setSuggestions([]);
                       setSearch("");
+                      setMobileSearchOpen(false);
                       setMenuOpen(false);
                     }}
                     className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
@@ -205,6 +178,24 @@ export default function Navbar() {
                 ))}
               </ul>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden bg-white shadow-lg px-6 py-4 flex flex-col gap-4 overflow-hidden"
+          >
+            <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link href="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
+            <Link href="/about" onClick={() => setMenuOpen(false)}>About</Link>
+            <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
 
             <button
               onClick={() => {
