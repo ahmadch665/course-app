@@ -145,10 +145,18 @@ export default function AllCoursesPage() {
       // Handle video URLs - only convert to array if it contains commas
      formData.append("videoUrls", data.videoUrls || "");
 
-      formData.append(
-        "videoDescription",
-        JSON.stringify(data.videoDescription || [])
-      );
+     formData.append(
+  "videoDescription",
+  JSON.stringify(
+    (data.videoDescription || []).map((sec) => ({
+      ...sec,
+      content: sec.content
+        ? sec.content.split(",").map((c) => c.trim())
+        : []
+    }))
+  )
+);
+
 
       if (data.image instanceof File) {
         formData.append("image", data.image);
@@ -196,16 +204,18 @@ export default function AllCoursesPage() {
   };
 
   const handleAddVideoDescChange = (index, field, value) => {
-    setNewCourseData((prev) => {
-      const updated = [...prev.videoDescription];
-      if (field === "content") {
-        updated[index].content = value.split(",").map((c) => c.trim());
-      } else {
-        updated[index][field] = value;
-      }
-      return { ...prev, videoDescription: updated };
-    });
-  };
+  setNewCourseData((prev) => {
+    const updated = [...prev.videoDescription];
+    if (field === "content") {
+      // ✅ keep as plain string while typing
+      updated[index].content = value;
+    } else {
+      updated[index][field] = value;
+    }
+    return { ...prev, videoDescription: updated };
+  });
+};
+
 
   const addVideoSection = () => {
     setNewCourseData((prev) => ({
@@ -250,10 +260,18 @@ export default function AllCoursesPage() {
       // Handle video URLs - only convert to array if it contains commas
     payload.append("videoUrls", newCourseData.videoUrls || "");
 
-      payload.append(
-        "videoDescription",
-        JSON.stringify(newCourseData.videoDescription)
-      );
+    payload.append(
+  "videoDescription",
+  JSON.stringify(
+    (newCourseData.videoDescription || []).map((sec) => ({
+      ...sec,
+      content: sec.content
+        ? sec.content.split(",").map((c) => c.trim())
+        : []
+    }))
+  )
+);
+
 
       if (newCourseData.image) payload.append("image", newCourseData.image);
 
@@ -767,30 +785,26 @@ export default function AllCoursesPage() {
                                 </div>
 
                                 {/* Section Content */}
-                                <input
-                                  type="text"
-                                  placeholder="Content (comma separated)"
-                                  className="w-full border px-2 py-1 rounded"
-                                  value={section.content.join(", ")}
-                                  onChange={(e) =>
-                                    setEditData((prev) => {
-                                      const updated = [
-                                        ...prev[selectedCourse._id]
-                                          .videoDescription,
-                                      ];
-                                      updated[i].content = e.target.value
-                                        .split(",")
-                                        .map((c) => c.trim());
-                                      return {
-                                        ...prev,
-                                        [selectedCourse._id]: {
-                                          ...prev[selectedCourse._id],
-                                          videoDescription: updated,
-                                        },
-                                      };
-                                    })
-                                  }
-                                />
+                            <input
+  type="text"
+  placeholder="Content (comma separated)"
+  className="w-full border px-2 py-1 rounded"
+  value={section.content}
+  onChange={(e) =>
+    setEditData((prev) => {
+      const updated = [...prev[selectedCourse._id].videoDescription];
+      updated[i].content = e.target.value; // ✅ keep string
+      return {
+        ...prev,
+        [selectedCourse._id]: {
+          ...prev[selectedCourse._id],
+          videoDescription: updated,
+        },
+      };
+    })
+  }
+/>
+
                               </div>
                             )
                           )}
@@ -1124,15 +1138,16 @@ export default function AllCoursesPage() {
                       </button>
                     </div>
 
-                    <input
-                      type="text"
-                      placeholder="Content (comma separated)"
-                      value={section.content.join(", ")}
-                      onChange={(e) =>
-                        handleAddVideoDescChange(i, "content", e.target.value)
-                      }
-                      className="w-full border px-2 py-1 rounded"
-                    />
+                   <input
+  type="text"
+  placeholder="Content (comma separated)"
+  value={section.content}   // ✅ plain string now
+  onChange={(e) =>
+    handleAddVideoDescChange(i, "content", e.target.value)
+  }
+  className="w-full border px-2 py-1 rounded"
+/>
+
                   </div>
                 ))}
 
