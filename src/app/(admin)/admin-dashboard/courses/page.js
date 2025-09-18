@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import api from "../../../../utils/axios";
+import api from "../../../utils/axios";
 import Image from "next/image";
 
 export default function AllCoursesPage() {

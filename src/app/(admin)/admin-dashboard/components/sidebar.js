@@ -55,40 +55,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </li>
 
           {/* Courses Dropdown */}
-          <li
-            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center justify-between"
-            onClick={() => setCourseOpen(!courseOpen)}
+           <li
+            className="p-4 hover:bg-blue-800 cursor-pointer flex items-center gap-3"
+            onClick={() => router.push("/admin-dashboard/courses")}
           >
-            <div className="flex items-center gap-3">
-              <FiBook />
-              <span className={`${sidebarOpen ? "block" : "hidden"}`}>Courses</span>
-            </div>
-            {sidebarOpen && (
-              <FiChevronDown
-                className={`transition-transform duration-300 ${
-                  courseOpen ? "rotate-180" : ""
-                }`}
-              />
-            )}
+            <FiUsers />
+            <span className={`${sidebarOpen ? "block" : "hidden"}`}>Courses</span>
           </li>
-
-          {/* Dropdown items for Courses */}
-          {courseOpen && sidebarOpen && (
-            <ul className="ml-10">
-              <li
-                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
-                onClick={() => router.push("/admin-dashboard/courses/all-courses")}
-              >
-                All Courses
-              </li>
-              <li
-                className="p-2 hover:bg-blue-600 cursor-pointer rounded-md"
-                onClick={() => router.push("/admin-dashboard/courses/add-courses")}
-              >
-                Add Course
-              </li>
-            </ul>
-          )}
         </ul>
       </nav>
 
