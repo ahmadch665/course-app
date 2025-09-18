@@ -73,13 +73,15 @@ export default function CourseContentPage() {
       </div>
     );
 
-  if (!courseContent) return <p className="text-center mt-20">Content not found.</p>;
+  if (!courseContent)
+    return <p className="text-center mt-20">Content not found.</p>;
 
   const currentVideoUrl =
     expandedModule !== null
       ? courseContent.videoDescription[expandedModule]?.videoUrl ||
         courseContent.videoUrls?.[0]
-      : courseContent.videoUrls?.[0] || "https://www.youtube.com/embed/K5KVEU3aaeQ";
+      : courseContent.videoUrls?.[0] ||
+        "https://www.youtube.com/embed/K5KVEU3aaeQ";
 
   const toggleCompletion = (idx) => {
     setCompletedModules((prev) =>
@@ -90,7 +92,8 @@ export default function CourseContentPage() {
   const Sidebar = () => (
     <div className="bg-white border-r lg:w-80 flex flex-col shadow-md">
       <div className="overflow-y-auto flex-1 p-3 space-y-2">
-        {courseContent.videoDescription && courseContent.videoDescription.length > 0 ? (
+        {courseContent.videoDescription &&
+        courseContent.videoDescription.length > 0 ? (
           courseContent.videoDescription.map((module, idx) => (
             <div
               key={idx}
@@ -101,7 +104,9 @@ export default function CourseContentPage() {
                   setExpandedModule(expandedModule === idx ? null : idx)
                 }
                 className={`w-full text-left px-4 py-3 flex justify-between items-center text-sm font-medium transition ${
-                  expandedModule === idx ? "bg-blue-50 text-blue-700" : "bg-white hover:bg-gray-50"
+                  expandedModule === idx
+                    ? "bg-blue-50 text-blue-700"
+                    : "bg-white hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -163,27 +168,26 @@ export default function CourseContentPage() {
       <Sidebar />
 
       <main className="flex-1 flex flex-col">
-      <motion.div
-  className="bg-white w-full shadow-lg  overflow-hidden 
+        <motion.div
+          className="bg-white w-full shadow-lg  overflow-hidden 
              h-[25vh] sm:h-[35vh] md:h-auto"
-  animate={typeof window !== "undefined" && window.innerWidth >= 768 
-    ? { height: isShrunk ? "40vh" : "70vh" } 
-    : {}}
-  transition={{ duration: 0.4 }}
->
-  <div className="w-full h-full px-4 py-3">
-    <iframe
-      className="w-full h-full rounded-t-xl rounded-b-xl shadow-md"
-      src={getEmbedUrl(currentVideoUrl)}
-      title="Course Video"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowFullScreen
-    ></iframe>
-  </div>
-</motion.div>
-
-
-
+          animate={
+            typeof window !== "undefined" && window.innerWidth >= 768
+              ? { height: isShrunk ? "40vh" : "70vh" }
+              : {}
+          }
+          transition={{ duration: 0.4 }}
+        >
+          <div className="w-full h-full px-4 py-3">
+            <iframe
+              className="w-full h-full rounded-t-xl rounded-b-xl shadow-md"
+              src={getEmbedUrl(currentVideoUrl)}
+              title="Course Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </motion.div>
         <div
           ref={descRef}
           onScroll={(e) => {
