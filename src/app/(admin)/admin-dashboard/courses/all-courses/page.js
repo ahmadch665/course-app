@@ -7,11 +7,10 @@ import Image from "next/image";
 export default function AllCoursesPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(null);
+  const [expanded, setExpanded] = useState(null); // currently opened course _id
   const [editData, setEditData] = useState({});
-  const [instructors, setInstructors] = useState([]); // ✅ added
+  const [instructors, setInstructors] = useState([]);
 
-  // Fetch all courses
   const fetchCourses = async () => {
     try {
       setLoading(true);
@@ -27,7 +26,6 @@ export default function AllCoursesPage() {
     }
   };
 
-  // ✅ Fetch instructors
   const fetchInstructors = async () => {
     try {
       const res = await api.get("/users/getinstructor");
@@ -42,7 +40,6 @@ export default function AllCoursesPage() {
     fetchInstructors();
   }, []);
 
-  // Expand handler
   const handleExpand = (course) => {
     if (expanded === course._id) {
       setExpanded(null);
@@ -61,7 +58,7 @@ export default function AllCoursesPage() {
         instructor:
           typeof course.instructor === "object" && course.instructor !== null
             ? course.instructor._id
-            : course.instructor || "", // ✅ support both id or object
+            : course.instructor || "",
         status: course.status || "",
         duration: course.duration || "",
         startDate: course.startDate?.split("T")[0] || "",
@@ -81,7 +78,6 @@ export default function AllCoursesPage() {
     }));
   };
 
-  // Delete course
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
 
@@ -95,7 +91,6 @@ export default function AllCoursesPage() {
     }
   };
 
-  // Update course
   const handleUpdate = async (id) => {
     try {
       const data = editData[id];
@@ -126,7 +121,6 @@ export default function AllCoursesPage() {
     }
   };
 
-  // ✅ helper to show instructor name
   const getInstructorName = (instructorIdOrObj) => {
     if (!instructorIdOrObj) return "-";
     if (typeof instructorIdOrObj === "object") {
@@ -137,58 +131,63 @@ export default function AllCoursesPage() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">📋 All Courses</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8">
+      {/* Header */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-gray-800 drop-shadow-sm">
+          📚 All Courses
+        </h1>
+        <p className="text-gray-500 mt-2">
+          Manage, edit, and explore your course library
+        </p>
+      </div>
 
       {loading ? (
-        <p>Loading courses...</p>
+        <p className="text-center text-gray-600">Loading courses...</p>
       ) : courses.length > 0 ? (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {courses.map((course) => {
-            const isExpanded = expanded === course._id;
-
-            return (
-              <div
-                key={course._id}
-                className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all"
-              >
-                {/* Card Header */}
+        <>
+          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {courses.map((course) => {
+              return (
                 <div
-                  onClick={() => handleExpand(course)}
-                  className="cursor-pointer"
+                  key={course._id}
+                  className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100"
                 >
-                  {editData[course._id]?.preview ? (
-                    <Image
-                      src={editData[course._id].preview}
-                      alt={course.title}
-                      width={600}
-                      height={160}
-                      className="w-full h-40 object-cover"
-                    />
-                  ) : course.image ? (
-                    <Image
-                      src={course.image}
-                      alt={course.title}
-                      width={600}
-                      height={160}
-                      className="w-full h-40 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500">
-                      No Image
-                    </div>
-                  )}
+                  {/* Card Header */}
+                  <div
+                    onClick={() => handleExpand(course)}
+                    className="cursor-pointer"
+                  >
+                    {editData[course._id]?.preview ? (
+                      <Image
+                        src={editData[course._id].preview}
+                        alt={course.title}
+                        width={600}
+                        height={160}
+                        className="w-full h-44 object-cover"
+                      />
+                    ) : course.image ? (
+                      <Image
+                        src={course.image}
+                        alt={course.title}
+                        width={600}
+                        height={160}
+                        className="w-full h-44 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-44 bg-gray-200 flex items-center justify-center text-gray-500">
+                        No Image
+                      </div>
+                    )}
 
-                  {!isExpanded && (
-                    <div className="p-4">
-                      <h2 className="text-lg font-bold">{course.title}</h2>
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                    <div className="p-5">
+                      <h2 className="text-xl font-semibold text-gray-800 truncate">
+                        {course.title}
+                      </h2>
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">
                         {course.description}
                       </p>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {course.transcription}
-                      </p>
-                      <div className="mt-2 text-sm">
+                      <div className="mt-3 space-y-1 text-sm text-gray-700">
                         <p>
                           <span className="font-semibold">Instructor:</span>{" "}
                           {getInstructorName(course.instructor)}
@@ -204,7 +203,7 @@ export default function AllCoursesPage() {
                         <p>
                           <span className="font-semibold">Status:</span>{" "}
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
                               course.status === "active"
                                 ? "bg-green-100 text-green-700"
                                 : course.status === "upcoming"
@@ -217,100 +216,146 @@ export default function AllCoursesPage() {
                         </p>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Editable Fields */}
-                {isExpanded && (
-                  <div className="fixed inset-0 flex items-center justify-center z-50">
-                    {/* Background Blur */}
-                    <div
-                      className="absolute inset-0 backdrop-blur-sm bg-white/30"
+          {/* ✅ Modal outside loop - FIXED VERSION */}
+          {expanded &&
+            (() => {
+              const selectedCourse = courses.find((c) => c._id === expanded);
+              if (!selectedCourse) return null;
+
+              return (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                  {/* Background Blur */}
+                  <div
+                    className="absolute inset-0 backdrop-blur-sm bg-white/30"
+                    onClick={() => setExpanded(null)}
+                  ></div>
+
+                  {/* Modal Content */}
+                  <div className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 z-50 overflow-y-auto max-h-[90vh]">
+                    {/* Close Button */}
+                    <button
+                      className="absolute top-2 right-2 mt-[-15px] text-red-600 hover:text-red-800 text-3xl font-bold"
                       onClick={() => setExpanded(null)}
-                    ></div>
+                    >
+                      &times;
+                    </button>
 
-                    {/* Modal Content */}
-                    <div className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 z-50 overflow-y-auto max-h-[90vh]">
-                      {/* Close Button */}
-                      <button
-                        className="absolute top-2 right-2 mt-[-15px] text-red-600 hover:text-red-800 text-3xl font-bold"
-                        onClick={() => setExpanded(null)}
-                      >
-                        &times;
-                      </button>
-
-                      {/* Your Existing Editable Fields (unchanged) */}
-                      <div
-                        className="space-y-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                    {/* Editable Fields */}
+                    <div
+                      className="space-y-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Title */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Title:
+                        </label>
                         <input
                           type="text"
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.title || ""}
+                          value={editData[selectedCourse._id]?.title || ""}
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 title: e.target.value,
                               },
                             }))
                           }
                           placeholder="Title"
                         />
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Description:
+                        </label>
                         <textarea
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.description || ""}
+                          value={
+                            editData[selectedCourse._id]?.description || ""
+                          }
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 description: e.target.value,
                               },
                             }))
                           }
                           placeholder="Description"
                         />
+                      </div>
+
+                      {/* Transcription */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Transcription:
+                        </label>
                         <textarea
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.transcription || ""}
+                          value={
+                            editData[selectedCourse._id]?.transcription || ""
+                          }
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 transcription: e.target.value,
                               },
                             }))
                           }
                           placeholder="Transcription"
                         />
+                      </div>
 
+                      {/* Price */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Price:
+                        </label>
                         <input
                           type="number"
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.price || ""}
+                          value={editData[selectedCourse._id]?.price || ""}
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 price: Number(e.target.value),
                               },
                             }))
                           }
                           placeholder="Price"
                         />
+                      </div>
+
+                      {/* Level */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Level:
+                        </label>
                         <select
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.level || "Beginner"}
+                          value={
+                            editData[selectedCourse._id]?.level || "Beginner"
+                          }
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 level: e.target.value,
                               },
                             }))
@@ -320,15 +365,21 @@ export default function AllCoursesPage() {
                           <option value="Intermediate">Intermediate</option>
                           <option value="Advanced">Advanced</option>
                         </select>
+                      </div>
 
+                      {/* Instructor */}
+                      <div>
+                        <label className="block font-semibold mb-1">
+                          Instructor:
+                        </label>
                         <select
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.instructor || ""}
+                          value={editData[selectedCourse._id]?.instructor || ""}
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
                                 instructor: e.target.value,
                               },
                             }))
@@ -341,287 +392,306 @@ export default function AllCoursesPage() {
                             </option>
                           ))}
                         </select>
+                      </div>
+  <div>
+    <label className="block font-semibold mb-1">Status:</label>
+                      <select
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.status || "active"}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              status: e.target.value,
+                            },
+                          }))
+                        }
+                      >
+                        <option value="active">active</option>
+                        <option value="inactive">inactive</option>
+                        <option value="pending">pending</option>
+                      </select>
+</div>
 
-                        <select
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.status || "active"}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                status: e.target.value,
-                              },
-                            }))
-                          }
-                        >
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                          <option value="pending">pending</option>
-                        </select>
-
-                        <input
-                          type="text"
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.duration || ""}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                duration: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Duration"
-                        />
-                        <input
-                          type="date"
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.startDate || ""}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                startDate: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Start Date"
-                        />
-                        <input
-                          type="date"
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.endDate || ""}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                endDate: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="End Date"
-                        />
-                        <textarea
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.notes || ""}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                notes: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Notes (comma separated)"
-                        />
-                        <input
-                          type="text"
-                          className="w-full border px-2 py-1 rounded"
-                          value={editData[course._id]?.videoUrls || ""}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              [course._id]: {
-                                ...prev[course._id],
-                                videoUrls: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Video URLs (comma separated)"
-                        />
-
-                        {/* ✅ Editable Video Description Section */}
-                        <div className="border rounded p-2">
-                          <label className="block font-semibold mb-2">
-                            Video Description
-                          </label>
-                          {Array.isArray(
-                            editData[course._id]?.videoDescription
-                          ) &&
-                            editData[course._id].videoDescription.map(
-                              (section, i) => (
-                                <div
-                                  key={i}
-                                  className="mb-3 p-2 border rounded"
-                                >
-                                  {/* Section Name + Remove */}
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                      type="text"
-                                      placeholder="Section Name"
-                                      className="flex-1 border px-2 py-1 rounded"
-                                      value={section.sectionName}
-                                      onChange={(e) =>
-                                        setEditData((prev) => {
-                                          const updated = [
-                                            ...prev[course._id]
-                                              .videoDescription,
-                                          ];
-                                          updated[i].sectionName =
-                                            e.target.value;
-                                          return {
-                                            ...prev,
-                                            [course._id]: {
-                                              ...prev[course._id],
-                                              videoDescription: updated,
-                                            },
-                                          };
-                                        })
-                                      }
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setEditData((prev) => {
-                                          const updated = prev[
-                                            course._id
-                                          ].videoDescription.filter(
-                                            (_, idx) => idx !== i
-                                          );
-                                          return {
-                                            ...prev,
-                                            [course._id]: {
-                                              ...prev[course._id],
-                                              videoDescription: updated,
-                                            },
-                                          };
-                                        })
-                                      }
-                                      className="px-2 py-1 bg-red-500 text-white rounded"
-                                    >
-                                      −
-                                    </button>
-                                  </div>
-
-                                  {/* Section Content */}
+  <div>
+    <label className="block font-semibold mb-1">Duration:</label>
+                      <input
+                        type="text"
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.duration || ""}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              duration: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Duration"
+                      />
+</div>
+  <div>
+    <label className="block font-semibold mb-1">Start Date:</label>
+                      <input
+                        type="date"
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.startDate || ""}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              startDate: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Start Date"
+                      />
+</div>
+  <div>
+    <label className="block font-semibold mb-1">End Date:</label>
+                      <input
+                        type="date"
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.endDate || ""}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              endDate: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="End Date"
+                      />
+</div>
+  <div>
+    <label className="block font-semibold mb-1">Notes:</label>
+                      <textarea
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.notes || ""}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              notes: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Notes (comma separated)"
+                      />
+</div>
+  <div>
+    <label className="block font-semibold mb-1">Video URL:</label>
+                      <input
+                        type="text"
+                        className="w-full border px-2 py-1 rounded"
+                        value={editData[selectedCourse._id]?.videoUrls || ""}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [selectedCourse._id]: {
+                              ...prev[selectedCourse._id],
+                              videoUrls: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Video URLs (comma separated)"
+                      />
+</div>
+                      {/* ✅ Editable Video Description Section */}
+                      <div className="border rounded p-2">
+                        <label className="block font-semibold mb-2">
+                          Video Description
+                        </label>
+                        {Array.isArray(
+                          editData[selectedCourse._id]?.videoDescription
+                        ) &&
+                          editData[selectedCourse._id].videoDescription.map(
+                            (section, i) => (
+                              <div key={i} className="mb-3 p-2 border rounded">
+                                {/* Section Name + Remove */}
+                                <div className="flex items-center gap-2 mb-2">
                                   <input
                                     type="text"
-                                    placeholder="Content (comma separated)"
-                                    className="w-full border px-2 py-1 rounded"
-                                    value={section.content.join(", ")}
+                                    placeholder="Section Name"
+                                    className="flex-1 border px-2 py-1 rounded"
+                                    value={section.sectionName}
                                     onChange={(e) =>
                                       setEditData((prev) => {
                                         const updated = [
-                                          ...prev[course._id].videoDescription,
+                                          ...prev[selectedCourse._id]
+                                            .videoDescription,
                                         ];
-                                        updated[i].content = e.target.value
-                                          .split(",")
-                                          .map((c) => c.trim());
+                                        updated[i].sectionName = e.target.value;
                                         return {
                                           ...prev,
-                                          [course._id]: {
-                                            ...prev[course._id],
+                                          [selectedCourse._id]: {
+                                            ...prev[selectedCourse._id],
                                             videoDescription: updated,
                                           },
                                         };
                                       })
                                     }
                                   />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setEditData((prev) => {
+                                        const updated = prev[
+                                          selectedCourse._id
+                                        ].videoDescription.filter(
+                                          (_, idx) => idx !== i
+                                        );
+                                        return {
+                                          ...prev,
+                                          [selectedCourse._id]: {
+                                            ...prev[selectedCourse._id],
+                                            videoDescription: updated,
+                                          },
+                                        };
+                                      })
+                                    }
+                                    className="px-2 py-1 bg-red-500 text-white rounded"
+                                  >
+                                    −
+                                  </button>
                                 </div>
-                              )
-                            )}
 
-                          {/* Add button */}
-                          <div className="flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditData((prev) => {
-                                  const updated = [
-                                    ...(prev[course._id].videoDescription ||
-                                      []),
-                                    { sectionName: "", content: [] },
-                                  ];
-                                  return {
-                                    ...prev,
-                                    [course._id]: {
-                                      ...prev[course._id],
-                                      videoDescription: updated,
-                                    },
-                                  };
-                                })
-                              }
-                              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
+                                {/* Section Content */}
+                                <input
+                                  type="text"
+                                  placeholder="Content (comma separated)"
+                                  className="w-full border px-2 py-1 rounded"
+                                  value={section.content.join(", ")}
+                                  onChange={(e) =>
+                                    setEditData((prev) => {
+                                      const updated = [
+                                        ...prev[selectedCourse._id]
+                                          .videoDescription,
+                                      ];
+                                      updated[i].content = e.target.value
+                                        .split(",")
+                                        .map((c) => c.trim());
+                                      return {
+                                        ...prev,
+                                        [selectedCourse._id]: {
+                                          ...prev[selectedCourse._id],
+                                          videoDescription: updated,
+                                        },
+                                      };
+                                    })
+                                  }
+                                />
+                              </div>
+                            )
+                          )}
 
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="w-full border px-2 py-1 rounded"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const previewUrl = URL.createObjectURL(file);
-                              setEditData((prev) => ({
-                                ...prev,
-                                [course._id]: {
-                                  ...prev[course._id],
-                                  image: file,
-                                  preview: previewUrl,
-                                },
-                              }));
+                        {/* Add button */}
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditData((prev) => {
+                                const updated = [
+                                  ...(prev[selectedCourse._id]
+                                    .videoDescription || []),
+                                  { sectionName: "", content: [] },
+                                ];
+                                return {
+                                  ...prev,
+                                  [selectedCourse._id]: {
+                                    ...prev[selectedCourse._id],
+                                    videoDescription: updated,
+                                  },
+                                };
+                              })
                             }
-                          }}
-                        />
-                        {editData[course._id]?.preview && (
-                          <div className="mt-2">
-                            <p className="text-xs text-gray-500">
-                              Selected image (not saved yet):
-                            </p>
-                            <Image
-                              src={editData[course._id].preview}
-                              alt="Preview"
-                              width={150}
-                              height={80}
-                              className="rounded border"
-                            />
-                          </div>
-                        )}
-                        <div className="mt-4 flex gap-2">
-                          <button
-                            onClick={() => handleUpdate(course._id)}
-                            className="flex-1 bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-all text-sm"
+                            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded"
                           >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => handleDelete(course._id)}
-                            className="flex-1 bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all text-sm"
-                          >
-                            Delete
+                            +
                           </button>
                         </div>
-                        <div className="mt-3 text-xs text-gray-500">
-                          <p>
-                            Created:{" "}
-                            {course.createdAt
-                              ? new Date(course.createdAt).toLocaleDateString()
-                              : "-"}
+                      </div>
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full border px-2 py-1 rounded"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const previewUrl = URL.createObjectURL(file);
+                            setEditData((prev) => ({
+                              ...prev,
+                              [selectedCourse._id]: {
+                                ...prev[selectedCourse._id],
+                                image: file,
+                                preview: previewUrl,
+                              },
+                            }));
+                          }
+                        }}
+                      />
+
+                      {editData[selectedCourse._id]?.preview && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-500">
+                            Selected image (not saved yet):
                           </p>
-                          <p>
-                            Updated:{" "}
-                            {course.updatedAt
-                              ? new Date(course.updatedAt).toLocaleDateString()
-                              : "-"}
-                          </p>
+                          <Image
+                            src={editData[selectedCourse._id].preview}
+                            alt="Preview"
+                            width={150}
+                            height={80}
+                            className="rounded border"
+                          />
                         </div>
+                      )}
+
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          onClick={() => handleUpdate(selectedCourse._id)}
+                          className="flex-1 bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-all text-sm"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => handleDelete(selectedCourse._id)}
+                          className="flex-1 bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      <div className="mt-3 text-xs text-gray-500">
+                        <p>
+                          Created:{" "}
+                          {selectedCourse.createdAt
+                            ? new Date(
+                                selectedCourse.createdAt
+                              ).toLocaleDateString()
+                            : "-"}
+                        </p>
+                        <p>
+                          Updated:{" "}
+                          {selectedCourse.updatedAt
+                            ? new Date(
+                                selectedCourse.updatedAt
+                              ).toLocaleDateString()
+                            : "-"}
+                        </p>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              );
+            })()}
+        </>
       ) : (
         <p>No courses found.</p>
       )}
