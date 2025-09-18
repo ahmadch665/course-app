@@ -58,6 +58,22 @@ export default function AllCoursesPage() {
     fetchInstructors();
   }, []);
 
+  // Helper function to format notes for display
+  const formatNotesForDisplay = (notes) => {
+    if (Array.isArray(notes)) {
+      return notes.join(", ");
+    }
+    return notes || "";
+  };
+
+  // Helper function to format video URLs for display
+  const formatVideoUrlsForDisplay = (videoUrls) => {
+    if (Array.isArray(videoUrls)) {
+      return videoUrls.join(", ");
+    }
+    return videoUrls || "";
+  };
+
   const handleExpand = (course) => {
     if (expanded === course._id) {
       setExpanded(null);
@@ -71,7 +87,7 @@ export default function AllCoursesPage() {
         title: course.title || "",
         description: course.description || "",
         transcription: course.transcription || "",
-                courseContent: course.courseContent || "",
+        courseContent: course.courseContent || "",
         price: course.price || 0,
         level: course.level || "",
         instructor:
@@ -82,12 +98,8 @@ export default function AllCoursesPage() {
         duration: course.duration || "",
         startDate: course.startDate?.split("T")[0] || "",
         endDate: course.endDate?.split("T")[0] || "",
-        notes: Array.isArray(course.notes)
-          ? course.notes.join(", ")
-          : course.notes || "",
-        videoUrls: Array.isArray(course.videoUrls)
-          ? course.videoUrls.join(", ")
-          : course.videoUrls || "",
+        notes: formatNotesForDisplay(course.notes),
+        videoUrls: formatVideoUrlsForDisplay(course.videoUrls),
         videoDescription: Array.isArray(course.videoDescription)
           ? course.videoDescription
           : [],
@@ -126,9 +138,17 @@ export default function AllCoursesPage() {
       formData.append("duration", data.duration);
       formData.append("startDate", data.startDate);
       formData.append("endDate", data.endDate);
-      formData.append("notes", JSON.stringify(data.notes ? data.notes.split(",").map(n => n.trim()) : []));
-      formData.append("videoUrls", JSON.stringify(data.videoUrls ? data.videoUrls.split(",").map(u => u.trim()) : []));
-      formData.append("videoDescription", JSON.stringify(data.videoDescription || []));
+      
+      // Handle notes - only convert to array if it contains commas
+      formData.append("notes", data.notes || "");
+
+      // Handle video URLs - only convert to array if it contains commas
+     formData.append("videoUrls", data.videoUrls || "");
+
+      formData.append(
+        "videoDescription",
+        JSON.stringify(data.videoDescription || [])
+      );
 
       if (data.image instanceof File) {
         formData.append("image", data.image);
@@ -190,7 +210,10 @@ export default function AllCoursesPage() {
   const addVideoSection = () => {
     setNewCourseData((prev) => ({
       ...prev,
-      videoDescription: [...prev.videoDescription, { sectionName: "", content: [] }],
+      videoDescription: [
+        ...prev.videoDescription,
+        { sectionName: "", content: [] },
+      ],
     }));
   };
 
@@ -203,7 +226,7 @@ export default function AllCoursesPage() {
 
   const handleAddCourseSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const payload = new FormData();
       payload.append("title", newCourseData.title.trim());
@@ -214,19 +237,23 @@ export default function AllCoursesPage() {
       payload.append("price", newCourseData.price);
       payload.append("level", newCourseData.level);
       payload.append("instructor", newCourseData.instructor);
-      if (newCourseData.startDate) payload.append("startDate", newCourseData.startDate);
-      if (newCourseData.endDate) payload.append("endDate", newCourseData.endDate);
+      if (newCourseData.startDate)
+        payload.append("startDate", newCourseData.startDate);
+      if (newCourseData.endDate)
+        payload.append("endDate", newCourseData.endDate);
       payload.append("status", newCourseData.status.toLowerCase());
 
-      if (newCourseData.notes) {
-        payload.append("notes", JSON.stringify(newCourseData.notes.split(",").map(n => n.trim())));
-      }
+      // Handle notes - only convert to array if it contains commas
+     payload.append("notes", newCourseData.notes || "");
 
-      if (newCourseData.videoUrls) {
-        payload.append("videoUrls", JSON.stringify(newCourseData.videoUrls.split(",").map(u => u.trim())));
-      }
 
-      payload.append("videoDescription", JSON.stringify(newCourseData.videoDescription));
+      // Handle video URLs - only convert to array if it contains commas
+    payload.append("videoUrls", newCourseData.videoUrls || "");
+
+      payload.append(
+        "videoDescription",
+        JSON.stringify(newCourseData.videoDescription)
+      );
 
       if (newCourseData.image) payload.append("image", newCourseData.image);
 
@@ -457,9 +484,7 @@ export default function AllCoursesPage() {
                         />
                       </div>
 
-
-
-                        <div>
+                      <div>
                         <label className="block font-semibold mb-1">
                           Course Content:
                         </label>
@@ -556,10 +581,14 @@ export default function AllCoursesPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block font-semibold mb-1">Status:</label>
+                        <label className="block font-semibold mb-1">
+                          Status:
+                        </label>
                         <select
                           className="w-full border px-2 py-1 rounded"
-                          value={editData[selectedCourse._id]?.status || "active"}
+                          value={
+                            editData[selectedCourse._id]?.status || "active"
+                          }
                           onChange={(e) =>
                             setEditData((prev) => ({
                               ...prev,
@@ -577,7 +606,9 @@ export default function AllCoursesPage() {
                       </div>
 
                       <div>
-                        <label className="block font-semibold mb-1">Duration:</label>
+                        <label className="block font-semibold mb-1">
+                          Duration:
+                        </label>
                         <input
                           type="text"
                           className="w-full border px-2 py-1 rounded"
@@ -595,7 +626,9 @@ export default function AllCoursesPage() {
                         />
                       </div>
                       <div>
-                        <label className="block font-semibold mb-1">Start Date:</label>
+                        <label className="block font-semibold mb-1">
+                          Start Date:
+                        </label>
                         <input
                           type="date"
                           className="w-full border px-2 py-1 rounded"
@@ -613,7 +646,9 @@ export default function AllCoursesPage() {
                         />
                       </div>
                       <div>
-                        <label className="block font-semibold mb-1">End Date:</label>
+                        <label className="block font-semibold mb-1">
+                          End Date:
+                        </label>
                         <input
                           type="date"
                           className="w-full border px-2 py-1 rounded"
@@ -644,13 +679,16 @@ export default function AllCoursesPage() {
                               },
                             }))
                           }
-                          placeholder="Notes (comma separated)"
+                          placeholder="Notes (comma separated for multiple values)"
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Enter multiple notes separated by commas
+                        </p>
                       </div>
+
                       <div>
-                        <label className="block font-semibold mb-1">Video URL:</label>
-                        <input
-                          type="text"
+                        <label className="block font-semibold mb-1">Video URLs:</label>
+                        <textarea
                           className="w-full border px-2 py-1 rounded"
                           value={editData[selectedCourse._id]?.videoUrls || ""}
                           onChange={(e) =>
@@ -662,9 +700,13 @@ export default function AllCoursesPage() {
                               },
                             }))
                           }
-                          placeholder="Video URLs (comma separated)"
+                          placeholder="Video URLs (comma separated for multiple values)"
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Enter multiple URLs separated by commas
+                        </p>
                       </div>
+
                       {/* ✅ Editable Video Description Section */}
                       <div className="border rounded p-2">
                         <label className="block font-semibold mb-2">
@@ -865,7 +907,7 @@ export default function AllCoursesPage() {
             className="absolute inset-0 backdrop-blur-sm bg-white/30"
             onClick={() => setIsAddModalOpen(false)}
           ></div>
-          
+
           <div className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 z-50 overflow-y-auto max-h-[90vh]">
             <button
               className="absolute top-2 right-2 mt-[-15px] text-red-600 hover:text-red-800 text-3xl font-bold"
@@ -873,9 +915,9 @@ export default function AllCoursesPage() {
             >
               &times;
             </button>
-            
+
             <h2 className="text-2xl font-bold mb-4">Add New Course</h2>
-            
+
             <form onSubmit={handleAddCourseSubmit} className="space-y-4">
               <div>
                 <label className="block font-semibold mb-1">Title:</label>
@@ -889,7 +931,7 @@ export default function AllCoursesPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Description:</label>
                 <textarea
@@ -901,9 +943,11 @@ export default function AllCoursesPage() {
                   required
                 />
               </div>
-              
+
               <div>
-                <label className="block font-semibold mb-1">Transcription:</label>
+                <label className="block font-semibold mb-1">
+                  Transcription:
+                </label>
                 <textarea
                   name="transcription"
                   placeholder="Transcription"
@@ -913,9 +957,11 @@ export default function AllCoursesPage() {
                   required
                 />
               </div>
-              
- <div>
-                <label className="block font-semibold mb-1">Course Content:</label>
+
+              <div>
+                <label className="block font-semibold mb-1">
+                  Course Content:
+                </label>
                 <textarea
                   name="courseContent"
                   placeholder="Course Content"
@@ -938,7 +984,7 @@ export default function AllCoursesPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Level:</label>
                 <select
@@ -952,7 +998,7 @@ export default function AllCoursesPage() {
                   <option value="Advanced">Advanced</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Instructor:</label>
                 <select
@@ -970,7 +1016,7 @@ export default function AllCoursesPage() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Status:</label>
                 <select
@@ -984,7 +1030,7 @@ export default function AllCoursesPage() {
                   <option value="pending">pending</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Duration:</label>
                 <input
@@ -996,7 +1042,7 @@ export default function AllCoursesPage() {
                   className="w-full border px-2 py-1 rounded"
                 />
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Start Date:</label>
                 <input
@@ -1007,7 +1053,7 @@ export default function AllCoursesPage() {
                   className="w-full border px-2 py-1 rounded"
                 />
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">End Date:</label>
                 <input
@@ -1018,33 +1064,41 @@ export default function AllCoursesPage() {
                   className="w-full border px-2 py-1 rounded"
                 />
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Notes:</label>
                 <textarea
                   name="notes"
-                  placeholder="Notes (comma separated)"
+                  placeholder="Notes (comma separated for multiple values)"
                   value={newCourseData.notes}
                   onChange={handleAddCourseChange}
                   className="w-full border px-2 py-1 rounded"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter multiple notes separated by commas
+                </p>
               </div>
-              
+
               <div>
                 <label className="block font-semibold mb-1">Video URLs:</label>
                 <input
                   type="text"
                   name="videoUrls"
-                  placeholder="Video URLs (comma-separated)"
+                  placeholder="Video URLs (comma-separated for multiple values)"
                   value={newCourseData.videoUrls}
                   onChange={handleAddCourseChange}
                   className="w-full border px-2 py-1 rounded"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter multiple URLs separated by commas
+                </p>
               </div>
-              
+
               {/* Video Description Section */}
               <div className="border rounded p-2">
-                <label className="block font-semibold mb-2">Video Description</label>
+                <label className="block font-semibold mb-2">
+                  Video Description
+                </label>
                 {newCourseData.videoDescription.map((section, i) => (
                   <div key={i} className="mb-3 p-2 border rounded">
                     <div className="flex items-center gap-2 mb-2">
@@ -1052,7 +1106,13 @@ export default function AllCoursesPage() {
                         type="text"
                         placeholder="Section Name"
                         value={section.sectionName}
-                        onChange={(e) => handleAddVideoDescChange(i, "sectionName", e.target.value)}
+                        onChange={(e) =>
+                          handleAddVideoDescChange(
+                            i,
+                            "sectionName",
+                            e.target.value
+                          )
+                        }
                         className="flex-1 border px-2 py-1 rounded"
                       />
                       <button
@@ -1068,7 +1128,9 @@ export default function AllCoursesPage() {
                       type="text"
                       placeholder="Content (comma separated)"
                       value={section.content.join(", ")}
-                      onChange={(e) => handleAddVideoDescChange(i, "content", e.target.value)}
+                      onChange={(e) =>
+                        handleAddVideoDescChange(i, "content", e.target.value)
+                      }
                       className="w-full border px-2 py-1 rounded"
                     />
                   </div>
@@ -1084,9 +1146,11 @@ export default function AllCoursesPage() {
                   </button>
                 </div>
               </div>
-              
+
               <div>
-                <label className="block font-semibold mb-1">Course Image:</label>
+                <label className="block font-semibold mb-1">
+                  Course Image:
+                </label>
                 <input
                   type="file"
                   name="image"
