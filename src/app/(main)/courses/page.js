@@ -74,40 +74,52 @@ export default function CoursesPage() {
             <div
               key={course._id || course.id}
               onClick={() => router.push(`/courses/${course._id || course.id}`)}
-              className="bg-white shadow-xl rounded-2xl overflow-hidden border hover:shadow-2xl transition flex flex-col h-[350px]" // ✅ fixed equal height
+              className="group bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-xl 
+             transition duration-300 flex flex-col cursor-pointer overflow-hidden"
             >
-              {/* Image */}
-              <Image
-                src={course.image || "/k.png"}
-                alt={course.title}
-                width={400}
-                height={100}
-                className="object-cover h-40 w-full"
-              />
+              {/* Image Section */}
+              <div className="relative h-40 w-full overflow-hidden">
+                <Image
+                  src={course.image || "/k.png"}
+                  alt={course.title}
+                  fill
+                  className="object-cover transform group-hover:scale-105 transition duration-500"
+                />
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition"></div>
+              </div>
 
               {/* Content */}
-              <div className="p-6 flex flex-col flex-1">
-                {/* Title */}
-                <h3 className="text-xl font-semibold text-blue-700 line-clamp-1">
-                  {course.title}
-                </h3>
-
-                {/* Description & Duration */}
-                <div className="mt-2 flex-1">
-                  <p className="text-gray-500 text-sm line-clamp-3">
-                    {course.description || "No description available."}
-                  </p>
+              <div className="p-5 flex flex-col flex-1">
+                {/* Title + Duration inline */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-700 transition">
+                    {course.title}
+                  </h3>
                   {course.duration && (
-                    <p className="text-gray-600 text-sm mt-2">
-                     Duration: {course.duration}
-                    </p>
+                    <span
+                      className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 
+                         px-2 py-1 rounded-full"
+                    >
+                      ⏳ {course.duration}
+                    </span>
                   )}
                 </div>
 
-                {/* Button fixed at bottom */}
-                <button className="mt-auto flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-                  <PlayCircle size={18} /> Start Course
-                </button>
+                {/* Description bilkul title ke neeche */}
+                <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+                  {course.description || "No description available."}
+                </p>
+
+                {/* Button neeche gap ke saath */}
+                <div className="mt-auto pt-4">
+                  <button
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 
+                   text-white text-sm py-2.5 rounded-lg font-medium hover:bg-blue-700 
+                   transition-all duration-300 cursor-pointer"
+                  >
+                    <PlayCircle size={16} /> Start Course
+                  </button>
+                </div>
               </div>
             </div>
           ))}
