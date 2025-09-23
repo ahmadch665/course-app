@@ -100,9 +100,15 @@ export default function AllCoursesPage() {
         endDate: course.endDate?.split("T")[0] || "",
         notes: formatNotesForDisplay(course.notes),
         videoUrls: formatVideoUrlsForDisplay(course.videoUrls),
-        videoDescription: Array.isArray(course.videoDescription)
-          ? course.videoDescription
-          : [],
+       videoDescription: Array.isArray(course.videoDescription)
+  ? course.videoDescription.map(sec => ({
+      sectionName: sec.sectionName || "",
+      content: Array.isArray(sec.content)
+        ? sec.content.join(", ")
+        : sec.content || ""
+    }))
+  : [],
+
         image: course.image || null,
         preview: null,
       },
@@ -145,22 +151,31 @@ export default function AllCoursesPage() {
       // Handle video URLs - only convert to array if it contains commas
      formData.append("videoUrls", data.videoUrls || "");
 
-     formData.append(
+formData.append(
   "videoDescription",
   JSON.stringify(
     (data.videoDescription || []).map((sec) => ({
-      ...sec,
-      content: sec.content
-        ? sec.content.split(",").map((c) => c.trim())
-        : []
+      sectionName: sec.sectionName || "",
+      content: Array.isArray(sec.content)
+        ? sec.content.join(", ")  // <-- ✅ join arrays into a string
+        : (sec.content || "")
     }))
   )
 );
 
 
+
+
+
+
+
+
       if (data.image instanceof File) {
         formData.append("image", data.image);
       }
+
+      console.log("Payload videoDescription:", formData.get("videoDescription"));
+
 
       await api.put(`/course/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -222,7 +237,7 @@ export default function AllCoursesPage() {
       ...prev,
       videoDescription: [
         ...prev.videoDescription,
-        { sectionName: "", content: [] },
+{ sectionName: "", content: "" }
       ],
     }));
   };
@@ -260,17 +275,16 @@ export default function AllCoursesPage() {
       // Handle video URLs - only convert to array if it contains commas
     payload.append("videoUrls", newCourseData.videoUrls || "");
 
-    payload.append(
+  payload.append(
   "videoDescription",
   JSON.stringify(
     (newCourseData.videoDescription || []).map((sec) => ({
-      ...sec,
-      content: sec.content
-        ? sec.content.split(",").map((c) => c.trim())
-        : []
+      sectionName: sec.sectionName || "",
+      content: sec.content || ""   // ✅ always plain string
     }))
   )
 );
+
 
 
       if (newCourseData.image) payload.append("image", newCourseData.image);
@@ -818,7 +832,7 @@ export default function AllCoursesPage() {
                                 const updated = [
                                   ...(prev[selectedCourse._id]
                                     .videoDescription || []),
-                                  { sectionName: "", content: [] },
+{ sectionName: "", content: "" }
                                 ];
                                 return {
                                   ...prev,
