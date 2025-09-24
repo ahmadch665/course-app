@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../../utils/axios";
 
 export default function Navbar() {
   const router = useRouter();
@@ -38,18 +38,12 @@ export default function Navbar() {
         setSuggestions([]);
         return;
       }
-
       try {
-        const res = await axios.get(
-          `https://course-app-tvgx.onrender.com/api/course/allcourses`
-        );
-
+        const res = await api.get(`/course/allcourses`);
         let courses = Array.isArray(res.data) ? res.data : res.data.data || [];
-
         const filtered = courses.filter((c) =>
           c.title?.toLowerCase().includes(search.toLowerCase())
         );
-
         setSuggestions(filtered.slice(0, 5));
       } catch (err) {
         console.error("Error fetching suggestions:", err);
@@ -63,17 +57,22 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-500 ${
-        scrolled ? "bg-white shadow-lg" : "bg-white shadow-md"
+      className={`sticky top-0 z-50 transition-all duration-500 backdrop-blur-md ${
+        scrolled
+          ? "bg-white/90 shadow-md"
+          : "bg-white/60 border-b border-gray-200"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-blue-700">
-          LearnHub
+      <div className="max-w-7xl mx-auto px-6 py-1 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <span className="text-2xl font-bold text-blue-600 tracking-wide">
+            LearnHub
+          </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8 font-normal">
           <Link href="/" className="hover:text-blue-600 transition">Home</Link>
           <Link href="/courses" className="hover:text-blue-600 transition">Courses</Link>
           <Link href="/about" className="hover:text-blue-600 transition">About</Link>
@@ -85,7 +84,7 @@ export default function Navbar() {
           <form
             onSubmit={handleSearch}
             className="flex items-center bg-gray-100 rounded-full border border-gray-300 
-             px-4 py-1 w-64 focus-within:border-blue-500 transition-colors duration-300 relative"
+             px-4 py-1 w-64 focus-within:border-blue-500 shadow-sm transition"
           >
             <Search className="text-gray-400 w-4 h-4 mr-2" />
             <input
@@ -97,6 +96,7 @@ export default function Navbar() {
             />
           </form>
 
+          {/* Suggestions */}
           {suggestions.length > 0 && (
             <ul className="absolute top-12 left-0 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
               {suggestions.map((course) => (
@@ -115,39 +115,42 @@ export default function Navbar() {
             </ul>
           )}
 
+          {/* Login Button */}
           <button
             onClick={handleSignUpClick}
-            className="px-3 py-1 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+            className="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white 
+             font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 
+             shadow-md transition cursor-pointer"
           >
             Login
           </button>
         </div>
 
-        {/* Mobile Hamburger + Search Icon */}
-        <div className="md:hidden flex items-center gap-2">
+        {/* Mobile Icons */}
+        <div className="md:hidden flex items-center gap-3">
           <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)}>
-            <Search size={24} />
+            <Search size={22} className="text-gray-700" />
           </button>
-
           <button onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+            {menuOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Search Bar with Slide Animation */}
+      {/* Mobile Search Bar */}
       <AnimatePresence>
         {mobileSearchOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden px-6 py-2"
+            className="md:hidden px-4 py-3"
           >
             <form
               onSubmit={handleSearch}
-              className="flex items-center bg-gray-100 rounded-full border border-gray-300 px-4 py-1 w-full focus-within:border-blue-500 transition-colors duration-300"
+              className="flex items-center bg-gray-100 rounded-full border border-gray-300 
+               px-4 py-2 w-full focus-within:border-blue-500 shadow-sm"
             >
               <Search className="text-gray-400 w-4 h-4 mr-2" />
               <input
@@ -159,8 +162,9 @@ export default function Navbar() {
               />
             </form>
 
+            {/* Mobile Suggestions */}
             {suggestions.length > 0 && (
-              <ul className="bg-white border border-gray-200 rounded-lg shadow-lg mt-2">
+              <ul className="bg-white border border-gray-200 rounded-lg shadow-md mt-2">
                 {suggestions.map((course) => (
                   <li
                     key={course._id}
@@ -186,11 +190,11 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white shadow-lg px-6 py-4 flex flex-col gap-4 overflow-hidden"
+            className="md:hidden bg-white shadow-md px-6 py-5 flex flex-col gap-4 font-medium"
           >
             <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
             <Link href="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
@@ -202,7 +206,9 @@ export default function Navbar() {
                 handleSignUpClick();
                 setMenuOpen(false);
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 
+               text-white rounded-full font-medium hover:from-blue-700 
+               hover:to-blue-800 shadow-md transition"
             >
               Login
             </button>

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { PlayCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "../utils/axios";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -13,7 +13,6 @@ export default function LandingPage() {
   const controls = useAnimation();
   const carouselRef = useRef(null);
 
-  // ✅ Kitne courses dikhane hain
   const LATEST_COURSES_COUNT = 5;
 
   const blogs = [
@@ -51,35 +50,22 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await axios.get(
-          "https://course-app-tvgx.onrender.com/api/course/allcourses"
-        );
+        const res = await api.get("/course/allcourses");
+        let courses = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
 
-        let courses = [];
-        if (Array.isArray(res.data)) {
-          courses = res.data;
-        } else if (Array.isArray(res.data.data)) {
-          courses = res.data.data;
-        } else {
-          console.error("Unexpected API response:", res.data);
-        }
-
-        // ✅ agar createdAt hai to sort karo warna direct slice
-        let latestCourses = courses;
-
-        if (courses.length > 0 && courses[0].createdAt) {
-          latestCourses = [...courses].sort(
+        if (courses.length && courses[0].createdAt) {
+          courses = [...courses].sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
         }
 
-        // ✅ sirf pehle N courses lo
-        latestCourses = latestCourses.slice(0, LATEST_COURSES_COUNT);
-
-        setFeaturedCourses(latestCourses);
+        setFeaturedCourses(courses.slice(0, LATEST_COURSES_COUNT));
       } catch (err) {
         console.error("Error fetching courses:", err);
-        setFeaturedCourses([]);
       } finally {
         setLoadingCourses(false);
       }
@@ -107,44 +93,41 @@ export default function LandingPage() {
     } else {
       controls.stop();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile]);
+  }, [isMobile, controls]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 relative">
       {/* 🌟 Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-28 px-6 md:px-12 text-center overflow-hidden">
-  {/* Background Pattern */}
-  <div className="absolute inset-0 opacity-20 bg-[url('/images/pattern.svg')] bg-cover bg-center"></div>
+        {/* Background */}
+        <div className="absolute inset-0 opacity-20 bg-[url('/images/pattern.svg')] bg-cover bg-center"></div>
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-md"></div>
 
-  {/* Glassmorphism Overlay */}
-  <div className="absolute inset-0 bg-white/10 backdrop-blur-md"></div>
+        {/* Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6 z-10 tracking-tight"
+        >
+          Learn Anything, Anytime with{" "}
+          <span className="text-yellow-300 drop-shadow-md">LearnHub</span>
+        </motion.h1>
 
-  {/* Heading */}
-  <motion.h1
-    initial={{ opacity: 0, y: -40 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, ease: "easeOut" }}
-    className="relative text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6 z-10 tracking-tight"
-  >
-    Learn Anything, Anytime with{" "}
-    <span className="text-yellow-300 drop-shadow-md">LearnHub</span>
-  </motion.h1>
-
-  {/* Subtext */}
-  <motion.p
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-    className="relative text-lg md:text-xl lg:text-2xl max-w-2xl mx-auto mb-8 z-10 text-gray-100"
-  >
-    Explore thousands of courses from top instructors and grow your skills
-    in <span className="text-yellow-300 font-semibold">tech</span>,{" "}
-    <span className="text-yellow-300 font-semibold">business</span>,{" "}
-    <span className="text-yellow-300 font-semibold">design</span>, and more.
-  </motion.p>
-</section>
-
+        {/* Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+          className="relative text-lg md:text-xl lg:text-2xl max-w-2xl mx-auto mb-8 z-10 text-gray-100"
+        >
+          Explore thousands of courses from top instructors and grow your skills
+          in <span className="text-yellow-300 font-semibold">tech</span>,{" "}
+          <span className="text-yellow-300 font-semibold">business</span>,{" "}
+          <span className="text-yellow-300 font-semibold">design</span>, and
+          more.
+        </motion.p>
+      </section>
 
       {/* 📚 Featured Courses Carousel */}
       <motion.section className="py-20 bg-gray-50">
@@ -156,7 +139,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ) : featuredCourses.length > 0 ? (
+        ) : featuredCourses.length ? (
           <div className="relative max-w-7xl mx-auto overflow-hidden">
             <motion.div
               ref={carouselRef}
@@ -179,13 +162,11 @@ export default function LandingPage() {
               }}
               animate={!isMobile ? controls : undefined}
             >
-              {/* 🔁 Duplicate array for infinite loop */}
               {[...featuredCourses, ...featuredCourses].map((course, idx) => (
                 <Link
                   href={`/courses/${course._id}`}
                   key={`${course._id}-${idx}`}
-                  className="min-w-[320px] w-[320px] bg-white rounded-2xl shadow-md border border-gray-100 
-            overflow-hidden flex flex-col"
+                  className="min-w-[320px] w-[320px] bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col"
                 >
                   {/* Image */}
                   <div className="relative h-36 w-full overflow-hidden">
@@ -200,11 +181,11 @@ export default function LandingPage() {
                   {/* Content */}
                   <div className="p-4 flex flex-col flex-1 bg-gradient-to-br from-white to-gray-50">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
                         {course.title}
                       </h3>
                       {course.duration && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                           {course.duration}
                         </span>
                       )}
@@ -214,11 +195,8 @@ export default function LandingPage() {
                         course.description ||
                         "No description available."}
                     </p>
-                    <button
-                      className="mt-auto w-full bg-blue-600 text-white text-sm py-2 rounded-xl 
-                font-medium hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <PlayCircle size={16} /> Start Learning
+                    <button className="mt-auto w-full bg-blue-600 text-white text-sm py-2 rounded-xl font-medium hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+                      Start Learning
                     </button>
                   </div>
                 </Link>
@@ -228,7 +206,20 @@ export default function LandingPage() {
         ) : (
           <p className="text-gray-500 text-center w-full">No courses found.</p>
         )}
+
+        {/* View All Button */}
+        <div className="flex justify-end max-w-7xl mx-auto mt-10 px-4">
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium 
+                     bg-blue-600 text-white rounded-lg shadow-md 
+                     hover:bg-blue-700 hover:shadow-lg transition-all duration-300"
+          >
+            View All →
+          </Link>
+        </div>
       </motion.section>
+
       {/* 📰 Blogs Section */}
       <motion.section
         className="py-20 px-6 md:px-12 bg-white"

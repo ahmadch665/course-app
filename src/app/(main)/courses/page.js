@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../utils/axios";
 import { PlayCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -17,9 +17,7 @@ export default function CoursesPage() {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          "https://course-app-tvgx.onrender.com/api/course/allcourses"
-        );
+        const res = await api.get("/course/allcourses");
         const coursesArray = res.data.courses || res.data.data || [];
         setCourses(coursesArray);
         setLoading(false);
@@ -44,7 +42,7 @@ export default function CoursesPage() {
       </h1>
 
       {/* Search Bar */}
-      <div className="flex justify-center mb-10">
+      {/* <div className="flex justify-center mb-10">
         <div className="relative w-full max-w-md">
           <input
             type="text"
@@ -55,7 +53,7 @@ export default function CoursesPage() {
           />
           <Search className="absolute left-3 top-2.5 text-gray-400" />
         </div>
-      </div>
+      </div> */}
 
       {/* Loader */}
       {loading && (
@@ -117,7 +115,7 @@ export default function CoursesPage() {
                    text-white text-sm py-2.5 rounded-lg font-medium hover:bg-blue-700 
                    transition-all duration-300 cursor-pointer"
                   >
-                    <PlayCircle size={16} /> Start Course
+                     Course Details
                   </button>
                 </div>
               </div>

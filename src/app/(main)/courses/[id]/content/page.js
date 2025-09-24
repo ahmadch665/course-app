@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../../../../utils/axios";
 import { ChevronDown, ChevronUp, CheckCircle, Circle } from "lucide-react";
 
 export default function CourseContentPage() {
@@ -13,6 +13,7 @@ export default function CourseContentPage() {
   const [expandedModule, setExpandedModule] = useState(null);
   const [completedModules, setCompletedModules] = useState([]);
   const [isShrunk, setIsShrunk] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(null);
 
   const descRef = useRef(null);
 
@@ -30,7 +31,7 @@ export default function CourseContentPage() {
   }, []);
 
   const getEmbedUrl = (url) => {
-    if (!url) return "";
+    if (!url) return null;
     try {
       if (url.includes("youtube.com/watch")) {
         const urlObj = new URL(url);
@@ -51,9 +52,7 @@ export default function CourseContentPage() {
   useEffect(() => {
     const fetchCourseContent = async () => {
       try {
-        const res = await axios.get(
-          `https://course-app-tvgx.onrender.com/api/course/${id}`
-        );
+        const res = await api.get(`/course/${id}`);
         const data = res.data.data || res.data;
         setCourseContent(data);
         setCompletedModules(Array(data.videoDescription?.length).fill(false));
@@ -77,11 +76,11 @@ export default function CourseContentPage() {
     return <p className="text-center mt-20">Content not found.</p>;
 
   const currentVideoUrl =
-    expandedModule !== null
-      ? courseContent.videoDescription[expandedModule]?.videoUrl ||
-        courseContent.videoUrls?.[0]
-      : courseContent.videoUrls?.[0] ||
-        "https://www.youtube.com/embed/K5KVEU3aaeQ";
+  currentVideoIndex !== null
+    ? courseContent.videoDescription[currentVideoIndex]?.videoUrl
+    : courseContent.videoUrls?.[0] ||
+      "https://www.youtube.com/embed/K5KVEU3aaeQ";
+
 
   const toggleCompletion = (idx) => {
     setCompletedModules((prev) =>
@@ -89,79 +88,103 @@ export default function CourseContentPage() {
     );
   };
 
-  const Sidebar = () => (
-    <div className="bg-white border-r lg:w-80 flex flex-col shadow-md">
-      <div className="overflow-y-auto flex-1 p-3 space-y-2">
-        {courseContent.videoDescription &&
-        courseContent.videoDescription.length > 0 ? (
-          courseContent.videoDescription.map((module, idx) => (
-            <div
-              key={idx}
-              className="border rounded-lg overflow-hidden shadow-sm hover:shadow transition"
-            >
-              <button
-                onClick={() =>
-                  setExpandedModule(expandedModule === idx ? null : idx)
-                }
-                className={`w-full text-left px-4 py-3 flex justify-between items-center text-sm font-medium transition ${
-                  expandedModule === idx
-                    ? "bg-blue-50 text-blue-700"
-                    : "bg-white hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCompletion(idx);
-                    }}
-                  >
-                    {completedModules[idx] ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-400" />
-                    )}
-                  </span>
-                  <span>{module.sectionName || `Section ${idx + 1}`}</span>
-                </div>
-                {expandedModule === idx ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </button>
+const Sidebar = () => (
+  <div className="bg-white border-r lg:w-80 flex flex-col shadow-lg">
+    {/* Header */}
+    <h2 className="text-lg font-semibold px-5 py-4 border-b text-gray-900 bg-white">
+      Course Modules
+    </h2>
 
-              <AnimatePresence initial={false}>
-                {expandedModule === idx && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-6 py-3 bg-gray-50 text-sm text-gray-700 space-y-2">
-                      {module.content && module.content.length > 0 ? (
-                        <ul className="list-disc pl-5 space-y-1">
-                          {module.content.map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>No content available</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))
-        ) : (
-          <p className="p-4 text-sm">No modules available.</p>
-        )}
-      </div>
+    {/* Module List */}
+    <div className="overflow-y-auto flex-1 p-4 space-y-2">
+      {courseContent.videoDescription &&
+      courseContent.videoDescription.length > 0 ? (
+        courseContent.videoDescription.map((module, idx) => (
+          <div
+            key={idx}
+            className={`rounded-lg border border-gray-200 bg-white shadow-sm 
+                        hover:shadow-md transition-all duration-200`}
+          >
+            {/* Toggle Button */}
+            <button
+  onClick={() => {
+    setExpandedModule(expandedModule === idx ? null : idx);
+    setCurrentVideoIndex(idx); // module click se video change
+  }}
+  className={`w-full text-left px-4 py-3 flex justify-between items-center 
+              text-sm font-medium transition rounded-lg ${
+    expandedModule === idx
+      ? "bg-blue-50 text-blue-700"
+      : "hover:bg-gray-50"
+  }`}
+            >
+              <div className="flex items-center gap-3">
+                {/* Completion Icon */}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCompletion(idx);
+                  }}
+                  className="cursor-pointer flex items-center justify-center w-5 h-5 rounded-full border border-gray-300 bg-white shadow-sm"
+                >
+                  {completedModules[idx] ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-gray-400" />
+                  )}
+                </span>
+
+                {/* Title */}
+                <span className="truncate font-medium text-gray-800">
+                  {module.sectionName || `Section ${idx + 1}`}
+                </span>
+              </div>
+
+              {/* Chevron */}
+              {expandedModule === idx ? (
+                <ChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              )}
+            </button>
+
+            {/* Expandable Content */}
+            <AnimatePresence initial={false}>
+              {expandedModule === idx && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 py-3 bg-gray-50 text-sm text-gray-700 space-y-2 border-t">
+                    {module.content && module.content.length > 0 ? (
+                      <ul className="list-disc pl-5 space-y-1 marker:text-blue-500">
+                        {module.content.map((item, i) => (
+                          <li key={i} className="leading-relaxed">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic">
+                        No content available
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))
+      ) : (
+        <p className="p-4 text-sm text-gray-500">No modules available.</p>
+      )}
     </div>
-  );
+  </div>
+);
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row">
