@@ -95,8 +95,9 @@ export default function CoursesPage() {
                   </h3>
                   {course.duration && (
                     <span
-                      className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 
-                         px-2 py-1 rounded"
+                      className="ml-2 min-w-[60px] h-6 flex items-center justify-center 
+               text-xs font-medium text-blue-600 bg-blue-50 
+               rounded text-center"
                     >
                       {course.duration}
                     </span>
@@ -115,7 +116,7 @@ export default function CoursesPage() {
                    text-white text-sm py-2.5 rounded-lg font-medium hover:bg-blue-700 
                    transition-all duration-300 cursor-pointer"
                   >
-                     Course Details
+                    Course Details
                   </button>
                 </div>
               </div>

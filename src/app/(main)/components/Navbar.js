@@ -150,7 +150,7 @@ export default function Navbar() {
             <form
               onSubmit={handleSearch}
               className="flex items-center bg-gray-100 rounded-full border border-gray-300 
-               px-4 py-2 w-full focus-within:border-blue-500 shadow-sm"
+               px-4 py-1 w-full focus-within:border-blue-500 shadow-sm"
             >
               <Search className="text-gray-400 w-4 h-4 mr-2" />
               <input
