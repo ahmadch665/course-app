@@ -29,6 +29,20 @@ export default function AllCoursesPage() {
     videoDescription: [],
   });
 
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success" // success, error, warning
+  });
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    courseId: null,
+    courseTitle: ""
+  });
+
   const fetchCourses = async () => {
     try {
       setLoading(true);
@@ -39,6 +53,7 @@ export default function AllCoursesPage() {
         "❌ Error fetching courses:",
         error.response?.data || error
       );
+      showNotification("Error fetching courses", "error");
     } finally {
       setLoading(false);
     }
@@ -50,6 +65,7 @@ export default function AllCoursesPage() {
       setInstructors(res.data?.data || []);
     } catch (error) {
       console.error("❌ Error fetching instructors:", error);
+      showNotification("Error fetching instructors", "error");
     }
   };
 
@@ -57,6 +73,24 @@ export default function AllCoursesPage() {
     fetchCourses();
     fetchInstructors();
   }, []);
+
+  // Show notification function
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "success"
+      });
+    }, 3000);
+  };
 
   // Helper function to format notes for display
   const formatNotesForDisplay = (notes) => {
@@ -100,15 +134,15 @@ export default function AllCoursesPage() {
         endDate: course.endDate?.split("T")[0] || "",
         notes: formatNotesForDisplay(course.notes),
         videoUrls: formatVideoUrlsForDisplay(course.videoUrls),
-       videoDescription: Array.isArray(course.videoDescription)
-  ? course.videoDescription.map(sec => ({
-      sectionName: sec.sectionName || "",
-      content: Array.isArray(sec.content)
-        ? sec.content.join(", ")
-        : sec.content || ""
-    }))
-  : [],
-
+        videoDescription: Array.isArray(course.videoDescription)
+          ? course.videoDescription.map(sec => ({
+              sectionName: sec.sectionName || "",
+              content: Array.isArray(sec.content)
+                ? sec.content.join(", ")
+                : sec.content || "",
+              videoUrl: sec.videoUrl || ""
+            }))
+          : [],
         image: course.image || null,
         preview: null,
       },
@@ -116,15 +150,15 @@ export default function AllCoursesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this course?")) return;
-
     try {
       await api.delete(`/course/delete/${id}`);
-      alert("✅ Course deleted successfully!");
+      showNotification("✅ Course deleted successfully!");
       fetchCourses();
     } catch (error) {
       console.error("❌ Error deleting course:", error.response?.data || error);
-      alert("Error deleting course.");
+      showNotification("Error deleting course", "error");
+    } finally {
+      setDeleteConfirm({ show: false, courseId: null, courseTitle: "" });
     }
   };
 
@@ -145,50 +179,38 @@ export default function AllCoursesPage() {
       formData.append("startDate", data.startDate);
       formData.append("endDate", data.endDate);
       
-      // Handle notes - only convert to array if it contains commas
       formData.append("notes", data.notes || "");
+      formData.append("videoUrls", data.videoUrls || "");
 
-      // Handle video URLs - only convert to array if it contains commas
-     formData.append("videoUrls", data.videoUrls || "");
-
-formData.append(
-  "videoDescription",
-  JSON.stringify(
-    (data.videoDescription || []).map((sec) => ({
-      sectionName: sec.sectionName || "",
-      content: Array.isArray(sec.content)
-        ? sec.content.join(", ")  // <-- ✅ join arrays into a string
-        : (sec.content || "")
-    }))
-  )
-);
-
-
-
-
-
-
-
+      formData.append(
+        "videoDescription",
+        JSON.stringify(
+          (data.videoDescription || []).map((sec) => ({
+            sectionName: sec.sectionName || "",
+            content: Array.isArray(sec.content)
+              ? sec.content.join(", ")
+              : (sec.content || ""),
+            videoUrl: sec.videoUrl || ""
+          }))
+        )
+      );
 
       if (data.image instanceof File) {
         formData.append("image", data.image);
       }
 
-      console.log("Payload videoDescription:", formData.get("videoDescription"));
-
-
       await api.put(`/course/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("✅ Course updated successfully!");
+      showNotification("✅ Course updated successfully!");
 
       await fetchCourses();
       const updated = courses.find((c) => c._id === id);
       if (updated) handleExpand(updated);
     } catch (error) {
       console.error("❌ Error updating course:", error.response?.data || error);
-      alert("Error updating course.");
+      showNotification("Error updating course", "error");
     }
   };
 
@@ -219,25 +241,23 @@ formData.append(
   };
 
   const handleAddVideoDescChange = (index, field, value) => {
-  setNewCourseData((prev) => {
-    const updated = [...prev.videoDescription];
-    if (field === "content") {
-      // ✅ keep as plain string while typing
-      updated[index].content = value;
-    } else {
-      updated[index][field] = value;
-    }
-    return { ...prev, videoDescription: updated };
-  });
-};
-
+    setNewCourseData((prev) => {
+      const updated = [...prev.videoDescription];
+      if (field === "content") {
+        updated[index].content = value;
+      } else {
+        updated[index][field] = value;
+      }
+      return { ...prev, videoDescription: updated };
+    });
+  };
 
   const addVideoSection = () => {
     setNewCourseData((prev) => ({
       ...prev,
       videoDescription: [
         ...prev.videoDescription,
-{ sectionName: "", content: "" }
+        { sectionName: "", content: "", videoUrl: "" }
       ],
     }));
   };
@@ -268,24 +288,19 @@ formData.append(
         payload.append("endDate", newCourseData.endDate);
       payload.append("status", newCourseData.status.toLowerCase());
 
-      // Handle notes - only convert to array if it contains commas
-     payload.append("notes", newCourseData.notes || "");
+      payload.append("notes", newCourseData.notes || "");
+      payload.append("videoUrls", newCourseData.videoUrls || "");
 
-
-      // Handle video URLs - only convert to array if it contains commas
-    payload.append("videoUrls", newCourseData.videoUrls || "");
-
-  payload.append(
-  "videoDescription",
-  JSON.stringify(
-    (newCourseData.videoDescription || []).map((sec) => ({
-      sectionName: sec.sectionName || "",
-      content: sec.content || ""   // ✅ always plain string
-    }))
-  )
-);
-
-
+      payload.append(
+        "videoDescription",
+        JSON.stringify(
+          (newCourseData.videoDescription || []).map((sec) => ({
+            sectionName: sec.sectionName || "",
+            content: sec.content || "",
+            videoUrl: sec.videoUrl || ""
+          }))
+        )
+      );
 
       if (newCourseData.image) payload.append("image", newCourseData.image);
 
@@ -293,7 +308,7 @@ formData.append(
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("✅ Course added successfully!");
+      showNotification("✅ Course added successfully!");
       setIsAddModalOpen(false);
       setNewCourseData({
         title: "",
@@ -315,12 +330,76 @@ formData.append(
       fetchCourses();
     } catch (error) {
       console.error("❌ Error adding course:", error.response?.data || error);
-      alert("Error adding course.");
+      showNotification("Error adding course", "error");
     }
+  };
+
+  // Open delete confirmation
+  const openDeleteConfirm = (courseId, courseTitle) => {
+    setDeleteConfirm({
+      show: true,
+      courseId,
+      courseTitle
+    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8">
+      {/* Notification Popup */}
+      {notification.show && (
+        <div className={`fixed top-4 right-4 z-50 max-w-sm ${
+          notification.type === "success" ? "bg-green-500" : 
+          notification.type === "error" ? "bg-red-500" : "bg-yellow-500"
+        } text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 animate-in slide-in-from-right`}>
+          <div className="flex items-center justify-between">
+            <span>{notification.message}</span>
+            <button 
+              onClick={() => setNotification({ show: false, message: "", type: "success" })}
+              className="ml-4 text-white hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 flex items-center justify-center z-60">
+          <div className="absolute inset-0 backdrop-blur-sm bg-black/30" onClick={() => setDeleteConfirm({ show: false, courseId: null, courseTitle: "" })}></div>
+          
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6 z-50">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Delete Course</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Are you sure you want to delete &quot;{deleteConfirm.courseTitle}&quot;? This action cannot be undone.
+
+              </p>
+              
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, courseId: null, courseTitle: "" })}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirm.courseId)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div>
@@ -739,7 +818,7 @@ formData.append(
                         </p>
                       </div>
 
-                      {/* ✅ Editable Video Description Section */}
+                      {/* ✅ Editable Video Description Section with Video URLs */}
                       <div className="border rounded p-2">
                         <label className="block font-semibold mb-2">
                           Video Description
@@ -799,26 +878,46 @@ formData.append(
                                 </div>
 
                                 {/* Section Content */}
-                            <input
-  type="text"
-  placeholder="Content (comma separated)"
-  className="w-full border px-2 py-1 rounded"
-  value={section.content}
-  onChange={(e) =>
-    setEditData((prev) => {
-      const updated = [...prev[selectedCourse._id].videoDescription];
-      updated[i].content = e.target.value; // ✅ keep string
-      return {
-        ...prev,
-        [selectedCourse._id]: {
-          ...prev[selectedCourse._id],
-          videoDescription: updated,
-        },
-      };
-    })
-  }
-/>
+                                <input
+                                  type="text"
+                                  placeholder="Content (comma separated)"
+                                  className="w-full border px-2 py-1 rounded mb-2"
+                                  value={section.content}
+                                  onChange={(e) =>
+                                    setEditData((prev) => {
+                                      const updated = [...prev[selectedCourse._id].videoDescription];
+                                      updated[i].content = e.target.value;
+                                      return {
+                                        ...prev,
+                                        [selectedCourse._id]: {
+                                          ...prev[selectedCourse._id],
+                                          videoDescription: updated,
+                                        },
+                                      };
+                                    })
+                                  }
+                                />
 
+                                {/* Video URL */}
+                                <input
+                                  type="text"
+                                  placeholder="Video URL"
+                                  className="w-full border px-2 py-1 rounded"
+                                  value={section.videoUrl || ""}
+                                  onChange={(e) =>
+                                    setEditData((prev) => {
+                                      const updated = [...prev[selectedCourse._id].videoDescription];
+                                      updated[i].videoUrl = e.target.value;
+                                      return {
+                                        ...prev,
+                                        [selectedCourse._id]: {
+                                          ...prev[selectedCourse._id],
+                                          videoDescription: updated,
+                                        },
+                                      };
+                                    })
+                                  }
+                                />
                               </div>
                             )
                           )}
@@ -832,7 +931,7 @@ formData.append(
                                 const updated = [
                                   ...(prev[selectedCourse._id]
                                     .videoDescription || []),
-{ sectionName: "", content: "" }
+                                  { sectionName: "", content: "", videoUrl: "" }
                                 ];
                                 return {
                                   ...prev,
@@ -893,7 +992,7 @@ formData.append(
                           Save
                         </button>
                         <button
-                          onClick={() => handleDelete(selectedCourse._id)}
+                          onClick={() => openDeleteConfirm(selectedCourse._id, selectedCourse.title)}
                           className="flex-1 bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all text-sm"
                         >
                           Delete
@@ -947,6 +1046,7 @@ formData.append(
             <h2 className="text-2xl font-bold mb-4">Add New Course</h2>
 
             <form onSubmit={handleAddCourseSubmit} className="space-y-4">
+              {/* ... (rest of the add course form remains exactly the same) */}
               <div>
                 <label className="block font-semibold mb-1">Title:</label>
                 <input
@@ -1106,7 +1206,6 @@ formData.append(
                   Enter multiple notes separated by commas
                 </p>
               </div>
-
               <div>
                 <label className="block font-semibold mb-1">Video URLs:</label>
                 <input
@@ -1122,7 +1221,7 @@ formData.append(
                 </p>
               </div>
 
-              {/* Video Description Section */}
+              {/* Video Description Section with Video URLs */}
               <div className="border rounded p-2">
                 <label className="block font-semibold mb-2">
                   Video Description
@@ -1152,16 +1251,26 @@ formData.append(
                       </button>
                     </div>
 
-                   <input
-  type="text"
-  placeholder="Content (comma separated)"
-  value={section.content}   // ✅ plain string now
-  onChange={(e) =>
-    handleAddVideoDescChange(i, "content", e.target.value)
-  }
-  className="w-full border px-2 py-1 rounded"
-/>
+                    <input
+                      type="text"
+                      placeholder="Content (comma separated)"
+                      value={section.content}
+                      onChange={(e) =>
+                        handleAddVideoDescChange(i, "content", e.target.value)
+                      }
+                      className="w-full border px-2 py-1 rounded mb-2"
+                    />
 
+                    {/* Video URL Input */}
+                    <input
+                      type="text"
+                      placeholder="Video URL"
+                      value={section.videoUrl || ""}
+                      onChange={(e) =>
+                        handleAddVideoDescChange(i, "videoUrl", e.target.value)
+                      }
+                      className="w-full border px-2 py-1 rounded"
+                    />
                   </div>
                 ))}
 

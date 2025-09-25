@@ -22,6 +22,7 @@ const UsersPage = () => {
   const [tempValue, setTempValue] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, user: null });
 
   // Show toast notification
   const showToast = (message, type = "success") => {
@@ -84,8 +85,13 @@ const UsersPage = () => {
       });
     } catch (err) {
       const message = err.response?.data?.message || "Adding user failed";
-      setError(message);
-      showToast(message, "error");
+      // Enhanced error handling for duplicate email
+      const errorMessage = message.toLowerCase().includes("email") && message.toLowerCase().includes("already") 
+        ? "This email is already registered. Please use a different email address."
+        : message;
+      
+      setError(errorMessage);
+      showToast(errorMessage, "error");
       console.error("❌ Error:", message);
     } finally {
       setLoading(false);
@@ -94,15 +100,15 @@ const UsersPage = () => {
 
   // --- Delete User ---
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
     try {
       await api.delete(`/users/delete/${id}`);
       showToast("User deleted successfully!");
+      setDeleteModal({ isOpen: false, user: null });
       await fetchUsers();
     } catch (err) {
       console.error("❌ Delete error:", err.response?.data || err.message);
       showToast("Failed to delete user", "error");
+      setDeleteModal({ isOpen: false, user: null });
     }
   };
 
@@ -211,10 +217,10 @@ const UsersPage = () => {
         className="min-h-[2.5rem] py-2 px-1 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200 group flex items-center"
         onClick={() => handleFieldClick(user._id, field, user[field] || "")}
       >
-        <span className="text-gray-800 group-hover:text-blue-700 transition-colors duration-200 font-bold ">
+        <span className="text-gray-800 group-hover:text-blue-700 transition-colors duration-200 font-bold">
           {user[field] || label}
         </span>
-        <svg className="ml-2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="ml-2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </div>
@@ -224,9 +230,9 @@ const UsersPage = () => {
   // Status badge component
   const StatusBadge = ({ status }) => {
     const statusConfig = {
-      active: { color: "bg-green-100 text-green-800", label: "Active" },
-      suspended: { color: "bg-red-100 text-red-800", label: "Suspended" },
-      inactive: { color: "bg-gray-100 text-gray-800", label: "Inactive" }
+      active: { color: "bg-green-100 text-green-800 border border-green-200", label: "Active" },
+      suspended: { color: "bg-red-100 text-red-800 border border-red-200", label: "Suspended" },
+      inactive: { color: "bg-gray-100 text-gray-800 border border-gray-200", label: "Inactive" }
     };
     
     const config = statusConfig[status] || statusConfig.inactive;
@@ -241,12 +247,12 @@ const UsersPage = () => {
   // Role badge component
   const RoleBadge = ({ role }) => {
     const roleConfig = {
-      ADMIN: { color: "bg-purple-100 text-purple-800", label: "Admin" },
-      INSTRUCTOR: { color: "bg-blue-100 text-blue-800", label: "Instructor" },
-      STUDENT: { color: "bg-green-100 text-green-800", label: "Student" }
+      ADMIN: { color: "bg-purple-100 text-purple-800 border border-purple-200", label: "Admin" },
+      INSTRUCTOR: { color: "bg-blue-100 text-blue-800 border border-blue-200", label: "Instructor" },
+      STUDENT: { color: "bg-green-100 text-green-800 border border-green-200", label: "Student" }
     };
     
-    const config = roleConfig[role] || { color: "bg-gray-100 text-gray-800", label: role };
+    const config = roleConfig[role] || { color: "bg-gray-100 text-gray-800 border border-gray-200", label: role };
     
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
@@ -256,10 +262,10 @@ const UsersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed top-4 right-4 z-60 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${
+        <div className={`fixed top-4 right-4 z-60 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 animate-fadeIn ${
           toast.type === "error" 
             ? "bg-red-50 border-l-4 border-red-500 text-red-700" 
             : "bg-green-50 border-l-4 border-green-500 text-green-700"
@@ -277,9 +283,42 @@ const UsersPage = () => {
         </div>
       )}
 
-      {/* Modal Backdrop */}
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm z-60 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform animate-slideUp">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Delete User</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">{deleteModal.user?.userName}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteModal({ isOpen: false, user: null })}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteModal.user?._id)}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                >
+                  Delete User
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform animate-slideUp">
             <div className="sticky top-0 bg-white rounded-t-2xl p-6 border-b border-gray-100">
               <div className="flex justify-between items-center">
@@ -427,18 +466,20 @@ const UsersPage = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-          <p className="text-gray-600">Manage your users efficiently with advanced controls</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3 p-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            User Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage your users efficiently with advanced controls</p>
         </div>
 
         {/* Users List Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           {/* Card Header */}
-          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+          <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div>
-                <h3 className="text-xl font-semibold text-gray-800">Users List</h3>
+                <h3 className="text-2xl font-bold text-gray-800">Users List</h3>
                 <p className="text-gray-600 text-sm mt-1">
                   {filteredUsers.length} {filteredUsers.length === 1 ? 'user' : 'users'} found
                 </p>
@@ -469,7 +510,7 @@ const UsersPage = () => {
                 />
               </div>
               
-              <div className="w-full sm:w-48">
+              <div className="w-full sm:w-48 ">
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
@@ -492,13 +533,13 @@ const UsersPage = () => {
               </div>
             ) : (
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                   <tr className="border-b border-gray-200">
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Contact</th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -506,11 +547,11 @@ const UsersPage = () => {
                     filteredUsers.map((user) => (
                       <tr
                         key={user._id}
-                        className="hover:bg-blue-50 transition-colors duration-150"
+                        className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200"
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-8 py-4">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                               {user.userName?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="ml-4">
@@ -518,13 +559,13 @@ const UsersPage = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-8 py-4">
                           <div className="space-y-1">
                             {renderEditableField(user, "email", "Click to add email")}
                             {renderEditableField(user, "phone", "Click to add phone")}
                           </div>
                         </td>
-                        <td className="px-6 py-4 cursor-pointer">
+                        <td className="px-8 py-4 cursor-pointer">
                           {editingField.id === user._id && editingField.field === "role" ? (
                             renderEditableField(user, "role", "Click to set role")
                           ) : (
@@ -533,7 +574,7 @@ const UsersPage = () => {
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 cursor-pointer">
+                        <td className="px-8 py-4 cursor-pointer">
                           {editingField.id === user._id && editingField.field === "status" ? (
                             renderEditableField(user, "status", "active")
                           ) : (
@@ -542,13 +583,13 @@ const UsersPage = () => {
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 ">
+                        <td className="px-8 py-4">
                           <div className="flex gap-2">
                             {editingField.id === user._id ? (
                               <>
                                 <button
                                   onClick={() => handleInlineSave(user._id)}
-                                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
+                                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -557,7 +598,7 @@ const UsersPage = () => {
                                 </button>
                                 <button
                                   onClick={handleInlineCancel}
-                                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center gap-2"
+                                  className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -567,8 +608,8 @@ const UsersPage = () => {
                               </>
                             ) : (
                               <button
-                                onClick={() => handleDelete(user._id)}
-                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
+                                onClick={() => setDeleteModal({ isOpen: true, user })}
+                                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -582,13 +623,13 @@ const UsersPage = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center">
+                      <td colSpan="5" className="px-6 py-16 text-center">
                         <div className="text-gray-500">
-                          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          <svg className="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                           </svg>
-                          <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-                          <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria</p>
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                          <p className="text-gray-600">Try adjusting your search or filter criteria</p>
                         </div>
                       </td>
                     </tr>
